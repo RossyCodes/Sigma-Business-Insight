@@ -20,7 +20,7 @@ An AI-powered business analytics dashboard built with **Streamlit**, **Gemini**,
 | Frontend | Streamlit (custom CSS/HTML theming) |
 | Charts | Plotly |
 | Data | pandas, openpyxl |
-| AI Agent | Google Gemini (`google-genai` SDK, model `gemini-2.0-flash`) |
+| AI Agent | Google Gemini (`google-genai` SDK, model `gemini-3.5-flash`) |
 | Reports | reportlab |
 
 ## 📋 Requirements
@@ -90,7 +90,13 @@ Get a free key at [Google AI Studio](https://aistudio.google.com/).
 
 ## 🧪 Try it with sample data
 
-A sample dataset (`sample_sales_data.csv`) is included in the repo. Upload it from the sidebar to see the full dashboard in action.
+Sample and test datasets live in **`test_data/`**:
+
+- `sample_sales_data.csv` — clean F&B-style sample (upload this first to see the full dashboard in action)
+- `test_messy_1..4_*.csv` — messy real-world cases (mixed date formats, missing values, inconsistent currency, duplicate rows, a title row before the header, refunds)
+- `test_industry_*.csv` — different industry shapes (retail/fashion, service/salon, wide e-commerce export)
+
+Run `python test_data_cleaning.py` to automatically push every file through the cleaning pipeline and confirm none of them crash. To also verify the AI chat agent end-to-end against the real Gemini model (needs an API key), run `python test_agent_live.py`.
 
 ## 📂 Project Structure
 
@@ -104,7 +110,8 @@ A sample dataset (`sample_sales_data.csv`) is included in the repo. Upload it fr
 ├── translations.py      # English / Bahasa Melayu translations
 ├── landing.html         # Landing page markup
 ├── requirements.txt     # Python dependencies
-├── sample_sales_data.csv
+├── test_data/           # Sample + messy + industry test CSVs
+├── test_data_cleaning.py  # Automated regression tests for the cleaning pipeline
 └── .streamlit/secrets.toml  # (local only — gitignored, never commit)
 ```
 

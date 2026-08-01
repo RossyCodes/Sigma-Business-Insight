@@ -19,7 +19,7 @@ import streamlit as st
 from agent import BusinessAgent
 from data_utils import (
     auto_detect_columns,
-    clean_data,
+    clean_data_with_report,
     get_data_preview,
     load_file,
 )
@@ -64,6 +64,8 @@ if "uploaded_filename" not in st.session_state:
     st.session_state.uploaded_filename = None
 if "file_processed" not in st.session_state:
     st.session_state.file_processed = False
+if "clean_report" not in st.session_state:
+    st.session_state.clean_report = None
 
 
 # Part 2 state
@@ -581,7 +583,7 @@ with st.sidebar:
 
             if st.button(t("generate_btn", _L), type="primary", use_container_width=True):
                 with st.spinner(t("generating", _L)):
-                    cleaned = clean_data(
+                    cleaned, clean_report = clean_data_with_report(
                         df,
                         date_col=date_col,
                         amount_col=amount_col,
@@ -589,6 +591,7 @@ with st.sidebar:
                         category_col=category_col,
                     )
                     st.session_state.df_clean = cleaned
+                    st.session_state.clean_report = clean_report
                     st.session_state.detected = {
                         "date_col": date_col,
                         "amount_col": amount_col,
@@ -605,6 +608,7 @@ with st.sidebar:
         st.session_state.df_raw = None
         st.session_state.df_clean = None
         st.session_state.file_processed = False
+        st.session_state.clean_report = None
 
     # Sidebar footer
     st.markdown("---")
@@ -727,6 +731,37 @@ with st.container():
             """,
             unsafe_allow_html=True,
         )
+
+    # -----------------------------------------------------------------------
+    # Data-quality banner — tell the user what was dropped / defaulted
+    # -----------------------------------------------------------------------
+
+    _clean_report = st.session_state.get("clean_report")
+    if _clean_report:
+        _reasons = []
+        _blank = _clean_report.get("rows_blank_dropped", 0)
+        _bad_date = _clean_report.get("rows_date_dropped", 0)
+        _bad_amount = _clean_report.get("rows_amount_dropped", 0)
+        if _blank > 0:
+            _reasons.append(t("data_quality_dropped_blank", _L).format(n=_blank))
+        if _bad_date > 0:
+            _reasons.append(t("data_quality_dropped_date", _L).format(n=_bad_date))
+        if _bad_amount > 0:
+            _reasons.append(t("data_quality_dropped_amount", _L).format(n=_bad_amount))
+        if _clean_report.get("products_defaulted", 0) > 0:
+            _reasons.append(
+                t("data_quality_unknown_products", _L).format(
+                    n=_clean_report["products_defaulted"]
+                )
+            )
+        if _clean_report.get("date_parse_failed"):
+            _reasons.append(t("data_quality_date_failed", _L))
+
+        if _reasons:
+            st.warning(
+                f"**{t('data_quality_rows_used', _L).format(used=_clean_report['rows_used'], source=_clean_report['rows_source'])}** — "
+                + " · ".join(_reasons)
+            )
 
     # -----------------------------------------------------------------------
     # Filters — filter dashboard by actual data values

@@ -1,0 +1,14 @@
+Date,Amount,Product,Category,Customer
+01/03/2026,12.50,Nasi Lemak Ayam,Food,Alice
+2026-03-02,8.00,Teh Tarik,Beverage,Bob
+03-04-2026,5.50,Roti Canai,Food,Charlie
+2026.03.05,10.00,Mee Goreng,Food,Dina
+06/03/2026,11.20,Nasi Kandar,Food,Emma
+7/3/2026,,Nasi Lemak Ayam,Food,Farid
+
+08-03-2026,7.80,,Beverage,Grace
+2026/03/09,9.40,Kopi O,Food,Han
+10/03/2026,6.60,Teh Tarik,Beverage,Irfan
+11-3-26,13.00,Nasi Lemak Ayam,Food,John
+,15.00,Kari Ayam,Food,Kamal
+2026-03-12,4.20,Air Mineral,Beverage,Lily

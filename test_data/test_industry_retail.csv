@@ -1,0 +1,11 @@
+Order Date,SKU,Product Name,Size,Colour,Quantity,Unit Price (RM),Customer
+01/03/2026,SKU-1001,Baju Kurung Moden,M,Navy,2,89.00,Aina
+02/03/2026,SKU-1002,Seluar Slack,L,Black,1,65.00,Farid
+03/03/2026,SKU-1001,Baju Kurung Moden,S,Maroon,1,89.00,Nurul
+04/03/2026,SKU-1003,Tudung Bawal,,Grey,3,25.00,Aina
+05/03/2026,SKU-1004,Kemeja Lelaki,XL,White,1,55.00,Farid
+06/03/2026,SKU-1002,Seluar Slack,M,Black,2,65.00,Hakim
+07/03/2026,SKU-1001,Baju Kurung Moden,M,Navy,1,89.00,Nurul
+08/03/2026,SKU-1005,Sarung Tangan,,Black,5,8.00,Aina
+09/03/2026,SKU-1003,Tudung Bawal,,Beige,2,25.00,Farid
+10/03/2026,SKU-1004,Kemeja Lelaki,L,White,1,55.00,Hakim

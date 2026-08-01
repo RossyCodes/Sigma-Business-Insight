@@ -83,6 +83,14 @@ TRANSLATIONS = {
         "products_no_col": "Product column not detected. Upload data with a product/item column to see this chart.",
         "products_no_data": "No product data available.",
 
+        # ---- Data quality banner ----
+        "data_quality_rows_used": "{used} of {source} rows used in this analysis",
+        "data_quality_dropped_blank": "{n} fully blank row(s)",
+        "data_quality_dropped_date": "{n} row(s) with unreadable dates",
+        "data_quality_dropped_amount": "{n} row(s) with missing/invalid amounts",
+        "data_quality_unknown_products": "{n} missing product name(s) shown as \"Unknown\".",
+        "data_quality_date_failed": "The date column could not be parsed — trend chart and date-based analysis are unavailable. Check the date column mapping.",
+
         # ---- Raw data expander ----
         "raw_data": "📄 View Raw Data (first 100 rows)",
 
@@ -213,6 +221,14 @@ TRANSLATIONS = {
         "trend_no_parse": "Lajur tarikh tidak dapat dibaca. Carta trend tidak tersedia.",
         "products_no_col": "Lajur produk tidak dikesan. Muat naik data dengan lajur produk/item untuk melihat carta ini.",
         "products_no_data": "Tiada data produk tersedia.",
+
+        # ---- Data quality banner ----
+        "data_quality_rows_used": "{used} daripada {source} baris digunakan dalam analisis ini",
+        "data_quality_dropped_blank": "{n} baris kosong sepenuhnya",
+        "data_quality_dropped_date": "{n} baris dengan tarikh tidak boleh dibaca",
+        "data_quality_dropped_amount": "{n} baris dengan jumlah tidak lengkap/tidak sah",
+        "data_quality_unknown_products": "{n} nama produk yang hilang dipaparkan sebagai \"Unknown\".",
+        "data_quality_date_failed": "Lajur tarikh tidak dapat dibaca — carta trend dan analisis berdasarkan tarikh tidak tersedia. Sila semak pemetaan lajur tarikh.",
 
         # ---- Raw data expander ----
         "raw_data": "📄 Lihat Data Mentah (100 baris pertama)",

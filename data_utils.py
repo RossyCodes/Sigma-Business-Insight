@@ -5,9 +5,12 @@ Kept separate from display/dashboard logic so that Part 2 (AI agent) can import
 cleaning utilities without pulling in Streamlit.
 """
 
+import csv
+import io
 import re
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 # ---------------------------------------------------------------------------
@@ -46,7 +49,7 @@ _CATEGORY_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
-# Common Malaysian date formats
+# Common Malaysian date formats (incl. dot-separated variants)
 _DATE_FORMATS = [
     "%d/%m/%Y",
     "%d-%m-%Y",
@@ -54,11 +57,23 @@ _DATE_FORMATS = [
     "%d-%m-%y",
     "%Y-%m-%d",
     "%Y/%m/%d",
+    "%Y.%m.%d",
+    "%d.%m.%Y",
+    "%d.%m.%y",
     "%d %b %Y",
     "%d %B %Y",
     "%b %d, %Y",
     "%B %d, %Y",
     "%Y%m%d",
+]
+
+# Year-first formats (ISO order). Parsed *before* the dayfirst loose pass so
+# dates like "2026.03.05" or "2026/03/09" are never re-interpreted day-first
+# (which would silently swap day and month).
+_YEAR_FIRST_FORMATS = [
+    "%Y-%m-%d",
+    "%Y/%m/%d",
+    "%Y.%m.%d",
 ]
 
 
@@ -69,11 +84,17 @@ _DATE_FORMATS = [
 
 def _strip_currency(series: pd.Series) -> pd.Series:
     """Remove currency symbols (RM, $, etc.), commas, and whitespace from
-    string values, then attempt numeric conversion."""
+    string values, then attempt numeric conversion.
+
+    The minus sign is deliberately preserved so negative amounts (e.g. a
+    ``-4.50`` refund) keep their sign instead of being silently flipped to
+    positive.  Currency prefixes are matched case-insensitively so
+    ``RM4.50``, ``rm2.00`` and ``RM 3.50`` all parse.
+    """
     if not pd.api.types.is_numeric_dtype(series):
         cleaned = (
             series.astype(str)
-            .str.replace(r"[RM$,€£¥\s()\-\+]+", "", regex=True)
+            .str.replace(r"[RM$,€£¥\s()]+", "", regex=True, flags=re.IGNORECASE)
             .str.strip()
         )
         cleaned = pd.to_numeric(cleaned, errors="coerce")
@@ -82,29 +103,103 @@ def _strip_currency(series: pd.Series) -> pd.Series:
 
 
 def _try_parse_date(series: pd.Series) -> pd.Series:
-    """Attempt to parse a Series as dates, trying common formats.
+    """Tolerantly parse a Series as dates, trying common formats.
 
-    Returns a datetime Series (with NaT for unparseable values) on success,
-    or the original Series unchanged on failure.
+    Strategy — row-level fallback instead of all-or-nothing:
+    1. Integer ``YYYYMMDD`` columns (a real POS export format, e.g.
+       ``20260305``) are parsed with an explicit ``%Y%m%d`` format.
+    2. Otherwise pandas' fast mixed-format parser is tried (``dayfirst=True``,
+       ``errors='coerce'``) — this avoids the slow per-element dateutil
+       fallback that plain ``dayfirst`` triggers on mixed formats.
+    3. For any rows still unparsed, try each explicit format in
+       ``_DATE_FORMATS`` and fill in what parses.
+    4. If at least half of the non-empty values parsed, return a datetime
+       Series (NaT marks the genuinely unparseable rows). Otherwise return
+       the original Series unchanged so the caller can decide.
+
+    This means a column with mixed date formats keeps every row it can
+    parse instead of abandoning the whole column.
     """
-    # First attempt: let pandas infer (with dayfirst=True for DD/MM/YYYY)
-    try:
-        parsed = pd.to_datetime(series, dayfirst=True, errors="coerce")
-        if parsed.notna().sum() > len(series) * 0.5:
-            return parsed
-    except Exception:
-        pass
+    # Integer YYYYMMDD dates (e.g. 20260305) are a common POS export format.
+    if pd.api.types.is_numeric_dtype(series):
+        sample = series.dropna()
+        if sample.empty:
+            return series
+        nums = pd.to_numeric(sample, errors="coerce")
+        ints = nums.astype("int64")
+        looks_like_yyyymmdd = ((ints >= 19000101) & (ints <= 21001231)).mean() >= 0.8
+        if not looks_like_yyyymmdd:
+            return series  # ordinary numbers (amounts/quantities) — not dates
+        parsed = pd.to_datetime(ints.astype(str), format="%Y%m%d", errors="coerce")
+        if parsed.notna().mean() >= 0.5:
+            return pd.to_datetime(
+                series.astype("Int64").astype(str),
+                format="%Y%m%d",
+                errors="coerce",
+            )
+        return series
 
-    # Second attempt: try explicit formats
-    for fmt in _DATE_FORMATS:
+    if not (pd.api.types.is_object_dtype(series) or pd.api.types.is_string_dtype(series)):
+        return series
+
+    # Normalise to string; treat empty / whitespace-only cells as missing
+    s = series.astype("string").str.strip()
+    s = s.mask(s.isna() | (s == ""), None)
+
+    # Result container (object dtype; normalised to datetime64 at the end).
+    parsed = pd.Series(pd.NaT, index=s.index)
+
+    # Pass A — cells that clearly start with a 4-digit year are parsed in ISO
+    # order first (YYYY-MM-DD / YYYY/MM/DD / YYYY.MM.DD). Doing this before the
+    # dayfirst pass stops "2026.03.05" / "2026/03/09" from being silently
+    # re-read as YYYY-DD-MM (day/month swapped).
+    year_first = s.str.match(r"^\d{4}[/.-]", na=False)
+    if year_first.any():
+        still = year_first.copy()
+        for fmt in _YEAR_FIRST_FORMATS:
+            if not still.any():
+                break
+            try:
+                vals = pd.to_datetime(
+                    s.loc[still], format=fmt, errors="coerce"
+                )
+                parsed.loc[still] = vals.to_numpy()
+            except Exception:
+                continue
+            still = parsed.isna() & year_first
+
+    # Pass B — everything else: fast "mixed" / dayfirst loose parse.
+    rest = (~year_first) & s.notna()
+    if rest.any():
         try:
-            parsed = pd.to_datetime(series, format=fmt, errors="coerce")
-            if parsed.notna().sum() > len(series) * 0.5:
-                return parsed
+            vals = pd.to_datetime(
+                s.loc[rest], format="mixed", dayfirst=True, errors="coerce"
+            )
+        except Exception:
+            vals = pd.to_datetime(s.loc[rest], dayfirst=True, errors="coerce")
+        parsed.loc[rest] = vals.to_numpy()
+
+    # Pass C — explicit-format fallback for any still-unparsed rows.
+    still_missing = np.flatnonzero(parsed.isna().to_numpy())
+    for fmt in _DATE_FORMATS:
+        if len(still_missing) == 0:
+            break
+        try:
+            fmt_parsed = pd.to_datetime(
+                s.iloc[still_missing], format=fmt, errors="coerce"
+            )
+            parsed.iloc[still_missing] = fmt_parsed.to_numpy()
         except Exception:
             continue
+        still_missing = np.flatnonzero(parsed.isna().to_numpy())
 
-    # Fallback: return original unchanged (parsing failed)
+    # Normalise back to a proper datetime64 series (was object dtype above).
+    parsed = pd.to_datetime(parsed, errors="coerce")
+
+    total = int(s.notna().sum())
+    ok = int(parsed.notna().sum())
+    if total > 0 and ok / total >= 0.5:
+        return parsed
     return series
 
 
@@ -137,6 +232,8 @@ def _score_date_by_values(series: pd.Series) -> float:
     parses (0.0 – 1.0)."""
     if series.dropna().empty:
         return 0.0
+    # _try_parse_date already refuses ordinary numbers (epoch timestamps),
+    # while still scoring integer YYYYMMDD columns that genuinely are dates.
     parsed = _try_parse_date(series.dropna().head(100))
     if not pd.api.types.is_datetime64_any_dtype(parsed):
         return 0.0
@@ -148,6 +245,15 @@ def _score_amount_by_values(series: pd.Series) -> float:
     sample = series.dropna().head(100)
     if sample.empty:
         return 0.0
+    # Date-like columns (e.g. "2026-03-02") can look numeric after stripping
+    # dashes — make sure the column doesn't mostly parse as dates instead.
+    if pd.api.types.is_object_dtype(sample) or pd.api.types.is_string_dtype(sample):
+        as_dates = _try_parse_date(sample)
+        if (
+            pd.api.types.is_datetime64_any_dtype(as_dates)
+            and as_dates.notna().sum() / len(sample) >= 0.5
+        ):
+            return 0.0
     # _strip_currency already returns a numeric Series with NaN for invalid
     numeric_count = _strip_currency(sample).notna().sum()
     return numeric_count / len(sample)
@@ -158,33 +264,105 @@ def _score_amount_by_values(series: pd.Series) -> float:
 # ---------------------------------------------------------------------------
 
 
+# Header-row detection — known column keywords (English + Bahasa Melayu)
+# used to locate the real header when a file begins with title/banner rows
+# (e.g. a report title printed above the column names, as in
+# ``test_messy_4_worst_case.csv``).
+_HEADER_KEYWORD_RE = re.compile(
+    r"(tarikh|date|tgl|masa|time|transaction\s*date|hari|created|timestamp|"
+    r"amount|jumlah|total|sales|harga|price|revenue|nilai|bayaran|jualan|gross|"
+    r"net|subtotal|product|item|barang|produk|description|perkhidmatan|nama|name|"
+    r"service|menu|category|kategori|segment|jenis|type|kumpulan|group|"
+    r"department|section)",
+    re.IGNORECASE,
+)
+
+_NUMERIC_CELL_RE = re.compile(r"^[-+]?[\d,]+(?:\.\d+)?$")
+
+
+def _find_header_row(lines: list, max_scan: int = 15) -> int:
+    """Locate the index of the real column-header row in a list of CSV lines.
+
+    Each candidate line is scored by the number of non-empty cells plus a
+    bonus for cells that look like column labels (match a known header
+    keyword), minus a penalty for purely numeric cells (data rows usually
+    contain numbers).  Returns 0 (use the first line as header) when no
+    better candidate is found — i.e. normal CSVs are unaffected.
+    """
+    # Guard: if the first line already looks like a plausible header (has at
+    # least two non-empty cells), trust it and return 0 immediately.  This
+    # guarantees the search can never silently skip real data rows on files
+    # whose header just happens to be keyword-poor — the search is only
+    # reached for files that start with title/banner rows (one cell, e.g.
+    # ``Laporan Jualan Kedai Makan Pak Su,,,,,``).
+    first_cells = [c.strip() for c in next(csv.reader([lines[0]]))] if lines else []
+    if sum(1 for c in first_cells if c) >= 2:
+        return 0
+
+    best_idx = 0
+    best_score = -1
+    for i, line in enumerate(lines[:max_scan]):
+        # Use the csv module so quoted commas (e.g. "Teh O,Ais") don't
+        # inflate the cell count of data rows.
+        try:
+            cells = [c.strip() for c in next(csv.reader([line]))]
+        except Exception:
+            cells = [c.strip() for c in line.split(",")]
+        non_empty = [c for c in cells if c]
+        if not non_empty:
+            continue
+        score = len(non_empty) * 10
+        score += sum(15 for c in non_empty if _HEADER_KEYWORD_RE.search(c))
+        score -= sum(3 for c in non_empty if _NUMERIC_CELL_RE.match(c))
+        if score > best_score:
+            best_score = score
+            best_idx = i
+    return best_idx
+
+
+def _read_csv_text(text: str) -> Optional[pd.DataFrame]:
+    """Parse CSV text, skipping any leading title/banner rows so the real
+    header line becomes the column names.
+
+    Blank lines are kept (``skip_blank_lines=False``) so fully-empty rows
+    survive into the DataFrame where ``clean_data_with_report`` can count
+    them in the data-quality report instead of silently discarding them.
+    """
+    lines = text.splitlines()
+    header_idx = _find_header_row(lines)
+    return pd.read_csv(
+        io.StringIO(text),
+        skiprows=header_idx,
+        skip_blank_lines=False,
+        on_bad_lines="skip",
+    )
+
+
 def load_file(uploaded_file) -> Optional[pd.DataFrame]:
-    """Read a CSV or Excel file into a DataFrame.  Returns None on failure."""
+    """Read a CSV or Excel file into a DataFrame.  Returns None on failure.
+
+    CSV handling:
+    - Tries several encodings (UTF-8 first, then common fallbacks).
+    - Locates the real header row, so files that start with title/banner
+      lines (e.g. ``test_messy_4_worst_case.csv``) still parse correctly.
+    """
     try:
         if uploaded_file.name.endswith(".csv"):
-            # Try UTF-8 first, then common fallbacks
+            raw = uploaded_file.read()
+            if isinstance(raw, str):
+                raw = raw.encode("utf-8")
             encodings = ["utf-8", "latin-1", "ISO-8859-1", "cp1252"]
             for enc in encodings:
                 try:
-                    df = pd.read_csv(
-                        uploaded_file,
-                        encoding=enc,
-                        on_bad_lines="skip",  # Skip rows with too many fields
-                    )
-                    if not df.empty:
-                        return df
+                    text = raw.decode(enc)
                 except (UnicodeDecodeError, UnicodeError):
-                    uploaded_file.seek(0)
                     continue
-            # Last resort
-            uploaded_file.seek(0)
-            df = pd.read_csv(
-                uploaded_file,
-                encoding="utf-8",
-                errors="replace",
-                on_bad_lines="skip",
-            )
-            return df
+                df = _read_csv_text(text)
+                if df is not None and not df.empty:
+                    return df
+            # Last resort: replace undecodable bytes
+            text = raw.decode("utf-8", errors="replace")
+            return _read_csv_text(text)
 
         if uploaded_file.name.endswith(".xlsx"):
             return pd.read_excel(uploaded_file, engine="openpyxl")
@@ -257,46 +435,81 @@ def auto_detect_columns(df: pd.DataFrame) -> dict:
     return result
 
 
-def clean_data(
+def clean_data_with_report(
     df: pd.DataFrame,
     date_col: Optional[str] = None,
     amount_col: Optional[str] = None,
     product_col: Optional[str] = None,
     category_col: Optional[str] = None,
-) -> pd.DataFrame:
-    """Return a cleaned copy of the DataFrame.
+) -> tuple[pd.DataFrame, dict]:
+    """Return a cleaned copy of the DataFrame plus a data-quality report.
 
     Steps:
     1. Drop fully empty rows/columns.
-    2. Parse the date column (if specified).
-    3. Clean the amount column (if specified).
-    4. Forward-fill sparse categories (if useful).
+    2. Parse the date column (if specified) — rows whose date can't be
+       parsed are dropped and counted.
+    3. Clean the amount column (if specified) — rows with invalid amounts
+       are dropped and counted.
+    4. Fill missing product/category with "Unknown" / "Uncategorised" and
+       count the defaults.
+
+    The report dict contains:
+        rows_source           — rows before any cleaning
+        rows_blank_dropped    — fully-empty rows removed
+        rows_date_dropped     — rows with unparseable dates removed
+        rows_amount_dropped   — rows with invalid/missing amounts removed
+        rows_used             — rows that made it into the analysis
+        products_defaulted    — product cells filled with "Unknown"
+        categories_defaulted  — category cells filled with "Uncategorised"
+        date_parse_failed     — True if the whole date column failed to parse
     """
     df = df.copy()
 
+    report = {
+        "rows_source": len(df),
+        "rows_blank_dropped": 0,
+        "rows_date_dropped": 0,
+        "rows_amount_dropped": 0,
+        "rows_used": 0,
+        "products_defaulted": 0,
+        "categories_defaulted": 0,
+        "date_parse_failed": False,
+    }
+
     # Drop rows / columns that are entirely NaN
+    before = len(df)
     df = df.dropna(how="all").dropna(axis=1, how="all")
+    report["rows_blank_dropped"] = before - len(df)
 
     if date_col and date_col in df.columns:
         df[date_col] = _try_parse_date(df[date_col])
-        # Drop rows where the date could not be parsed (only if date_col is set)
-        df = df.dropna(subset=[date_col])
+        if pd.api.types.is_datetime64_any_dtype(df[date_col]):
+            # Drop rows where the date could not be parsed (only if date_col is set)
+            report["rows_date_dropped"] = int(df[date_col].isna().sum())
+            df = df.dropna(subset=[date_col])
+        else:
+            # Entire column failed to parse — flag it, keep rows for now
+            report["date_parse_failed"] = True
 
     if amount_col and amount_col in df.columns:
         df[amount_col] = _strip_currency(df[amount_col])
         # Also drop rows where amount is invalid
+        report["rows_amount_dropped"] = int(df[amount_col].isna().sum())
         df = df.dropna(subset=[amount_col])
 
     if product_col and product_col in df.columns:
+        report["products_defaulted"] = int(df[product_col].isna().sum())
         df[product_col] = df[product_col].fillna("Unknown").astype(str).str.strip()
 
     if category_col and category_col in df.columns:
+        report["categories_defaulted"] = int(df[category_col].isna().sum())
         df[category_col] = df[category_col].fillna("Uncategorised").astype(str).str.strip()
 
     # Reset index after dropping rows
     df = df.reset_index(drop=True)
+    report["rows_used"] = len(df)
 
-    return df
+    return df, report
 
 
 def get_data_preview(
@@ -304,7 +517,13 @@ def get_data_preview(
     date_col: Optional[str] = None,
     amount_col: Optional[str] = None,
 ) -> dict:
-    """Return a dictionary of high-level statistics for the data preview."""
+    """Return a dictionary of high-level statistics for the data preview.
+
+    Amount stats are computed defensively: the column is coerced to numeric
+    first so a string column can never crash the preview with a
+    ``ValueError`` (e.g. when a mis-detected column ends up mapped as the
+    amount column).
+    """
     preview = {
         "row_count": len(df),
         "columns": list(df.columns),
@@ -316,8 +535,11 @@ def get_data_preview(
     }
 
     if amount_col and amount_col in df.columns:
-        preview["total_sales"] = float(df[amount_col].sum())
-        preview["avg_order_value"] = float(df[amount_col].mean())
+        amount_series = pd.to_numeric(df[amount_col], errors="coerce")
+        total_sales = amount_series.sum()
+        preview["total_sales"] = float(total_sales) if pd.notna(total_sales) else 0.0
+        avg = amount_series.mean()
+        preview["avg_order_value"] = float(avg) if pd.notna(avg) else 0.0
 
     if date_col and date_col in df.columns and pd.api.types.is_datetime64_any_dtype(df[date_col]):
         min_date = df[date_col].min()

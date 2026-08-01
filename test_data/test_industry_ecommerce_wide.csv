@@ -1,0 +1,11 @@
+Order ID,Order Date,Platform,Product Name,Category,Quantity,Unit Price (RM),Discount (%),Shipping Fee (RM),Payment Method,Total (RM),Buyer Username,Buyer City,Tracking Number,Order Status
+ORD-8801,01/03/2026,Shopee,Serum Vitamin C,Skincare,2,45.00,10,5.00,COD,85.00,user_ain88,Kuala Lumpur,MY1029384756,Completed
+ORD-8802,02/03/2026,Lazada,Facial Wash,Skincare,1,25.00,0,6.00,Online Banking,31.00,farid_shop,Johor Bahru,MY1029384757,Completed
+ORD-8803,02/03/2026,Shopee,Moisturizer,Skincare,3,38.00,15,5.00,ShopeePay,102.90,kumar_k,Penang,MY1029384758,Completed
+ORD-8804,03/03/2026,TikTok Shop,Sunscreen SPF50,Skincare,1,42.00,0,7.00,COD,49.00,nadia_x,Ipoh,MY1029384759,Return/Refund
+ORD-8805,04/03/2026,Shopee,Serum Vitamin C,Skincare,1,45.00,10,5.00,ShopeePay,45.50,weilingg,Kuala Lumpur,MY1029384760,Completed
+ORD-8806,05/03/2026,Lazada,Facial Wash,Skincare,2,25.00,5,6.00,Online Banking,53.50,ainshop2,Melaka,MY1029384761,Completed
+ORD-8807,06/03/2026,Shopee,Moisturizer,Skincare,1,38.00,0,5.00,COD,43.00,farid_shop,Johor Bahru,MY1029384762,Cancelled
+ORD-8808,07/03/2026,TikTok Shop,Sunscreen SPF50,Skincare,2,42.00,10,7.00,TikTok Pay,82.60,kumar_k,Penang,MY1029384763,Completed
+ORD-8809,08/03/2026,Shopee,Serum Vitamin C,Skincare,1,45.00,0,5.00,ShopeePay,50.00,nadia_x,Ipoh,MY1029384764,Completed
+ORD-8810,09/03/2026,Lazada,Facial Wash,Skincare,4,25.00,20,6.00,Online Banking,86.00,weilingg,Kuala Lumpur,MY1029384765,Completed

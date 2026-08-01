@@ -174,7 +174,7 @@ class BusinessAgent:
     4. Return Gemini's final natural-language response
     """
 
-    def __init__(self, api_key: str, model_name: str = "gemini-2.0-flash"):
+    def __init__(self, api_key: str, model_name: str = "gemini-3.5-flash"):
         self._client = genai.Client(api_key=api_key)
         self.model_name = model_name
         self._chat = None
@@ -253,8 +253,12 @@ class BusinessAgent:
                     )
                 )
 
-            # Send ALL function responses back at once in a single turn
-            response = self._chat.send_message(types.Content(parts=parts))
+            # Send ALL function responses back at once in a single turn.
+            # NOTE: google-genai >= 2.0 changed ``Chat.send_message`` to accept
+            # a list of parts (``Union[list[PartUnionDict], PartUnionDict]``)
+            # instead of a ``types.Content`` wrapper, so pass the parts list
+            # directly.
+            response = self._chat.send_message(parts)
 
             # Recurse to handle the model's follow-up response
             return self._handle_response(response, df, detected)
