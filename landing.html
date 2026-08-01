@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050B18">
+<title>Sigma — Sales analytics for Malaysian small businesses</title>
+<meta name="description" content="Upload your POS export or Excel file. Sigma turns it into a dashboard and a bilingual AI agent you can ask questions in English or Bahasa Melayu — in under a minute.">
+<meta property="og:title" content="Sigma — Sales analytics for Malaysian small businesses">
+<meta property="og:description" content="See what's actually happening in your sales, without hiring a data analyst. Upload a file. Get answers in under a minute.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B1830'/%3E%3Cpath d='M9 9h14l-8 7 8 7H9z' fill='none' stroke='%238FD4FF' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Sigma — landing page
+   Layered blue palette. Precision-engineered. Not a template.
+   ============================================================ */
+:root{
+  --void:#050B18;
+  --ink:#0B1830;
+  --struct:#1B3A6B;
+  --signal:#2F6FED;
+  --ice:#8FD4FF;
+  --text:#E8EEF9;
+  --muted:rgba(232,238,249,.64);
+  --faint:rgba(232,238,249,.38);
+  --line:rgba(143,212,255,.14);
+  --line-soft:rgba(143,212,255,.08);
+  --glow:rgba(47,111,237,.55);
+  --ice-glow:rgba(143,212,255,.35);
+  --font-display:'Space Grotesk',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{
+  background:var(--void);
+  color:var(--text);
+  font:400 1rem/1.6 var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:rgba(47,111,237,.45);color:#fff}
+:focus-visible{outline:2px solid var(--ice);outline-offset:3px;border-radius:4px}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:var(--struct);border-radius:8px;border:2px solid var(--void)}
+::-webkit-scrollbar-thumb:hover{background:#24518f}
+
+/* ---- texture layers ---- */
+.noise{position:fixed;inset:0;z-index:51;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");}
+.vignette{position:fixed;inset:0;z-index:50;pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 45%,transparent 58%,rgba(2,4,10,.6) 100%);}
+
+/* ---- shared ---- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+section{position:relative;padding:110px 0}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);border:0}
+.marker{display:flex;align-items:center;gap:.9rem;
+  font:.72rem var(--font-mono);letter-spacing:.3em;text-transform:uppercase;color:var(--signal)}
+.marker::after{content:"";height:1px;width:60px;background:linear-gradient(90deg,rgba(47,111,237,.6),transparent)}
+h2{font:700 clamp(1.9rem,3.6vw,2.7rem)/1.12 var(--font-display);letter-spacing:-.02em;color:var(--text);margin:1rem 0 1.1rem;max-width:24ch}
+.lead{color:var(--muted);font:400 1.03rem/1.75 var(--font-body);max-width:62ch}
+.mono-em{font-family:var(--font-mono);font-size:.92em;color:var(--ice)}
+strong{color:var(--text);font-weight:600}
+
+/* ---- buttons ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+  font:600 .95rem var(--font-display);letter-spacing:.01em;padding:.9rem 1.5rem;border-radius:12px;
+  cursor:pointer;text-decoration:none;border:1px solid transparent;white-space:nowrap;
+  transition:transform .2s ease,box-shadow .3s ease,background .3s ease,border-color .3s ease}
+.btn-primary{
+  background:linear-gradient(135deg,#2F6FED 0%,#2457c4 55%,#2F6FED 120%);
+  color:#fff;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(143,212,255,.22) inset,0 10px 34px -10px var(--glow);
+}
+.btn-primary::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(110deg,transparent 30%,rgba(143,212,255,.35) 50%,transparent 70%);
+  transform:translateX(-120%);transition:transform .7s ease}
+.btn-primary:hover{transform:translateY(-2px);
+  box-shadow:0 0 0 1px rgba(143,212,255,.5) inset,0 16px 44px -10px var(--glow),0 0 28px -6px var(--ice-glow)}
+.btn-primary:hover::after{transform:translateX(120%)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:rgba(27,58,107,.3);color:var(--ice);border-color:var(--line)}
+.btn-ghost:hover{border-color:rgba(143,212,255,.45);background:rgba(27,58,107,.55);transform:translateY(-2px)}
+
+/* ---- nav ---- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:60;border-bottom:1px solid transparent;
+  transition:background .35s,border-color .35s,backdrop-filter .35s}
+.nav.scrolled{background:rgba(5,11,24,.74);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:var(--line-soft)}
+.nav-inner{max-width:1180px;margin:0 auto;padding:0 24px;height:72px;display:flex;align-items:center;gap:2rem}
+.logo{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+.logo-mark{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(145deg,#13315f,#0b1830);border:1px solid rgba(143,212,255,.28);
+  color:var(--ice);font:600 1.1rem/1 var(--font-mono);
+  box-shadow:0 0 18px -6px var(--ice-glow),inset 0 0 14px -8px rgba(143,212,255,.55)}
+.logo-name{font:600 1.22rem var(--font-display);color:var(--text);letter-spacing:.01em;line-height:1}
+.logo-sub{display:block;margin-top:3px;font:.58rem var(--font-mono);letter-spacing:.3em;text-transform:uppercase;color:var(--faint)}
+.nav-links{display:flex;gap:1.7rem;margin-left:auto;align-items:center}
+.nav-links a{color:var(--muted);font:.92rem var(--font-body);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--ice)}
+.nav-cta{display:flex;align-items:center;gap:1rem}
+.nav-cta .btn{padding:.6rem 1.05rem;font-size:.85rem}
+
+.lang-switch{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:rgba(11,24,48,.6)}
+.lang-btn{border:0;background:transparent;color:var(--faint);font:600 .76rem var(--font-mono);
+  letter-spacing:.08em;padding:.34rem .78rem;border-radius:999px;cursor:pointer;transition:all .25s ease}
+.lang-btn.active{background:linear-gradient(135deg,rgba(47,111,237,.4),rgba(27,58,107,.45));
+  color:var(--ice);box-shadow:0 0 14px -4px var(--ice-glow),inset 0 0 0 1px rgba(143,212,255,.35)}
+
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;margin-left:auto;z-index:61}
+.burger span{display:block;width:22px;height:2px;background:var(--ice);border-radius:2px;transition:transform .3s,opacity .3s}
+body.nav-open .burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+body.nav-open .burger span:nth-child(2){opacity:0}
+body.nav-open .burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+.nav-menu{position:fixed;inset:0;z-index:58;background:rgba(5,11,24,.97);backdrop-filter:blur(18px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;
+  opacity:0;pointer-events:none;transition:opacity .3s ease}
+body.nav-open .nav-menu{opacity:1;pointer-events:auto}
+.nav-menu a.nm-link{font:600 1.6rem var(--font-display);color:var(--text);text-decoration:none;letter-spacing:-.01em;transition:color .2s}
+.nav-menu a.nm-link:hover{color:var(--ice)}
+.nav-menu .lang-switch{margin-top:1rem}
+
+/* ---- hero ---- */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  overflow:hidden;
+  background:
+    radial-gradient(1100px 640px at 76% 16%,rgba(47,111,237,.16),transparent 62%),
+    radial-gradient(900px 520px at 18% 86%,rgba(27,58,107,.4),transparent 58%),
+    var(--void)}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(143,212,255,.15) 1px,transparent 1.4px);
+  background-size:36px 36px;
+  -webkit-mask-image:radial-gradient(72% 62% at 72% 40%,#000 20%,transparent 78%);
+  mask-image:radial-gradient(72% 62% at 72% 40%,#000 20%,transparent 78%)}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(480px 300px at 74% 26%,rgba(143,212,255,.09),transparent 60%),
+             radial-gradient(620px 400px at 28% 72%,rgba(47,111,237,.1),transparent 65%);
+  animation:aurora 13s ease-in-out infinite alternate}
+@keyframes aurora{from{opacity:.5}to{opacity:1}}
+#hero-scene{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.hero-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:flex-end;padding-right:8%;z-index:1;pointer-events:none}
+.no-webgl #hero-scene{display:none}
+.no-webgl .hero-fallback{display:flex}
+.hero-grad{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,var(--void) 2%,rgba(5,11,24,.78) 28%,rgba(5,11,24,.28) 58%,transparent 78%)}
+.hero-inner{position:relative;z-index:3;width:100%;max-width:1180px;margin:0 auto;padding:130px 24px 40px}
+.hero-copy{max-width:640px}
+.eyebrow{display:flex;align-items:center;gap:.7rem;font:.72rem var(--font-mono);letter-spacing:.3em;
+  text-transform:uppercase;color:var(--ice);opacity:.92}
+.eyebrow::before{content:"";width:34px;height:1px;background:linear-gradient(90deg,var(--ice),transparent)}
+h1{font:700 clamp(2.5rem,5.6vw,4.3rem)/1.05 var(--font-display);letter-spacing:-.03em;color:var(--text);
+  margin:1.1rem 0 1.3rem}
+.h1-block{display:block}
+.h1-ice{background:linear-gradient(92deg,var(--ice) 0%,var(--signal) 88%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(143,212,255,.25))}
+.hero-sub{color:var(--muted);font:400 1.06rem/1.7 var(--font-body);max-width:52ch}
+.hero-cta{display:flex;gap:.95rem;margin-top:2.1rem;flex-wrap:wrap}
+.hero-micro{margin-top:1.2rem;font:.7rem var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+
+.hero-trust{position:relative;z-index:3;width:100%;max-width:1180px;margin:0 auto;padding:26px 24px 0;
+  border-top:1px solid var(--line-soft)}
+.trust-row{display:flex;flex-wrap:wrap;gap:.9rem 1.6rem;justify-content:center}
+.trust-chip{font:.66rem var(--font-mono);letter-spacing:.22em;text-transform:uppercase;color:var(--faint);
+  display:flex;align-items:center;gap:.55rem}
+.trust-chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 8px var(--glow)}
+
+.hero-scrollcue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:4;
+  display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--faint);
+  font:.6rem var(--font-mono);letter-spacing:.3em;text-transform:uppercase}
+.hero-scrollcue::after{content:"";width:1px;height:34px;
+  background:linear-gradient(180deg,var(--signal),transparent);
+  animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}
+  55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+.scene-ui{position:absolute;top:88px;right:26px;z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:.7rem}
+.scene-replay{background:rgba(11,24,48,.66);border:1px solid var(--line);color:var(--faint);
+  font:.62rem var(--font-mono);letter-spacing:.26em;text-transform:uppercase;padding:.5rem .85rem;
+  border-radius:999px;cursor:pointer;transition:all .25s;backdrop-filter:blur(6px)}
+.scene-replay:hover{color:var(--ice);border-color:rgba(143,212,255,.45);box-shadow:0 0 16px -4px var(--ice-glow)}
+.scene-caption{font:.6rem var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);opacity:.8}
+
+.chip{position:absolute;z-index:3;display:flex;align-items:center;gap:.6rem;padding:.6rem .9rem;
+  border-radius:11px;background:rgba(11,24,48,.74);border:1px solid var(--line);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  font:.72rem var(--font-mono);color:var(--ice);white-space:nowrap;
+  box-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+.chip b{color:var(--text);font-weight:500}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--ice);box-shadow:0 0 9px var(--ice-glow);animation:pulse 2.4s infinite;flex:none}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+.chip-1{top:17%;right:6%}
+.chip-2{top:37%;right:15%}
+.chip-3{top:56%;right:7%}
+
+/* ---- problem ---- */
+.problem{background:linear-gradient(180deg,var(--void) 0%,var(--ink) 14%,var(--ink) 86%,var(--void) 100%)}
+.problem-grid{display:grid;grid-template-columns:1fr 1.08fr;gap:64px;align-items:start;margin-top:48px}
+.problem-copy p{color:var(--muted);font-size:1.03rem;line-height:1.8;margin-bottom:1.1rem}
+.mock-card{border:1px solid var(--line);border-radius:16px;background:rgba(11,24,48,.72);overflow:hidden;
+  box-shadow:0 40px 90px -36px rgba(0,0,0,.75)}
+.mock-head{display:flex;align-items:center;gap:.7rem;padding:.75rem 1rem;border-bottom:1px solid var(--line-soft);
+  background:rgba(5,11,24,.5);font:.73rem var(--font-mono);color:var(--faint)}
+.mock-dots{display:flex;gap:5px;margin-right:.3rem}
+.mock-dots i{width:9px;height:9px;border-radius:50%}
+.mock-dots i:nth-child(1){background:rgba(143,212,255,.55)}
+.mock-dots i:nth-child(2){background:rgba(47,111,237,.55)}
+.mock-dots i:nth-child(3){background:var(--struct)}
+.mock-title{margin-left:auto;font:.68rem var(--font-mono);color:var(--faint);letter-spacing:.06em}
+.mock-table{width:100%;border-collapse:collapse;font:.8rem var(--font-mono)}
+.mock-table th{text-align:left;padding:.6rem .95rem;color:var(--faint);font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;font-size:.64rem;border-bottom:1px solid var(--line-soft)}
+.mock-table td{padding:.62rem .95rem;color:var(--muted);border-bottom:1px solid rgba(143,212,255,.05)}
+.mock-table tbody tr{transition:background .2s}
+.mock-table tbody tr:hover{background:rgba(47,111,237,.07)}
+.mock-table .bad{color:rgba(232,238,249,.32);text-decoration:line-through;text-decoration-color:rgba(143,212,255,.45)}
+.mock-table .ok{color:var(--ice)}
+.mock-caption{margin-top:.8rem;font:.68rem var(--font-mono);letter-spacing:.08em;color:var(--faint)}
+.transform{display:flex;align-items:center;gap:1rem;margin:24px 8px;color:var(--signal);
+  font:.7rem var(--font-mono);letter-spacing:.2em;text-transform:uppercase}
+.transform::before,.transform::after{content:"";flex:1;height:1px}
+.transform::before{background:linear-gradient(90deg,transparent,rgba(47,111,237,.55))}
+.transform::after{background:linear-gradient(90deg,rgba(47,111,237,.55),transparent)}
+.clean-strip{display:flex;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+  background:var(--line-soft)}
+.clean-kpi{flex:1;background:rgba(11,24,48,.88);padding:1.15rem 1.25rem;transition:background .3s}
+.clean-kpi:hover{background:rgba(11,24,48,.5)}
+.clean-kpi .k{display:block;font:.62rem var(--font-mono);letter-spacing:.22em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:.5rem}
+.clean-kpi .v{font:600 clamp(1.05rem,2vw,1.3rem) var(--font-mono);color:var(--ice)}
+.clean-kpi .v .up{color:var(--ice)}
+
+/* ---- how it works ---- */
+.how{background:var(--void)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:58px;position:relative}
+.connector{position:absolute;top:36px;left:15%;right:15%;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(143,212,255,0),rgba(143,212,255,.45) 50%,rgba(143,212,255,0));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 1.5s cubic-bezier(.2,.7,.2,1) .15s}
+.how.in-view .connector{transform:scaleX(1)}
+.step-card{position:relative;overflow:hidden;background:rgba(27,58,107,.26);
+  border:1px solid var(--line);border-radius:18px;padding:28px 26px;transition:transform .35s,border-color .35s,box-shadow .35s}
+.step-card:hover{transform:translateY(-5px);border-color:rgba(143,212,255,.42);
+  box-shadow:0 26px 64px -26px rgba(47,111,237,.4)}
+.step-top{display:flex;align-items:baseline;gap:.7rem;margin-bottom:1.1rem}
+.step-label{font:.6rem var(--font-mono);letter-spacing:.3em;text-transform:uppercase;color:var(--faint)}
+.step-num{font:600 1.7rem var(--font-mono);color:var(--signal);letter-spacing:.02em;line-height:1}
+.step-card h3{font:600 1.18rem var(--font-display);color:var(--text);letter-spacing:-.01em;margin-bottom:.6rem}
+.step-card p{color:var(--muted);font-size:.92rem;line-height:1.7;margin-bottom:1.4rem}
+.step-visual{border-top:1px solid var(--line-soft);padding-top:1.1rem;min-height:96px}
+.upload-box{border:1.5px dashed rgba(143,212,255,.34);border-radius:12px;padding:16px 14px;
+  display:flex;flex-direction:column;align-items:center;gap:9px;transition:border-color .3s,background .3s}
+.upload-box:hover{border-color:rgba(143,212,255,.65);background:rgba(47,111,237,.06)}
+.file-chip{display:inline-flex;align-items:center;gap:.5rem;font:.72rem var(--font-mono);color:var(--ice)}
+.file-chip .file-ic{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;
+  background:rgba(47,111,237,.18);border:1px solid rgba(143,212,255,.3);font-size:.6rem;color:var(--ice)}
+.upload-tag{font:.58rem var(--font-mono);letter-spacing:.26em;text-transform:uppercase;color:var(--faint)}
+.spark{width:100%;height:64px;display:block}
+.spark-line{stroke-dasharray:300;stroke-dashoffset:300;
+  transition:stroke-dashoffset 1.9s cubic-bezier(.2,.7,.2,1) .25s}
+.how.in-view .spark-line{stroke-dashoffset:0}
+.spark-bars rect{transform:scaleY(0);transform-origin:bottom;
+  transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.how.in-view .spark-bars rect{transform:scaleY(1)}
+.how.in-view .spark-bars rect:nth-child(1){transition-delay:.1s}
+.how.in-view .spark-bars rect:nth-child(2){transition-delay:.2s}
+.how.in-view .spark-bars rect:nth-child(3){transition-delay:.3s}
+.how.in-view .spark-bars rect:nth-child(4){transition-delay:.4s}
+.how.in-view .spark-bars rect:nth-child(5){transition-delay:.5s}
+.bubble{background:rgba(11,24,48,.82);border:1px solid var(--line);border-radius:12px 12px 12px 3px;
+  padding:11px 13px;font:.75rem var(--font-mono);color:var(--ice);line-height:1.5}
+.bubble.reply{border-radius:12px 12px 3px 12px;margin-left:26px;color:var(--text);margin-top:8px;
+  border-color:rgba(143,212,255,.25)}
+.dots{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+.dots span{width:4px;height:4px;border-radius:50%;background:var(--ice);animation:blink 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.15s}
+.dots span:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* ---- features ---- */
+.features{background:linear-gradient(180deg,var(--void),rgba(11,24,48,.55) 50%,var(--void))}
+.f-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:52px}
+.f-card{position:relative;overflow:hidden;background:rgba(27,58,107,.24);
+  border:1px solid var(--line);border-radius:18px;padding:30px 28px;transition:transform .35s,border-color .35s,box-shadow .35s}
+.f-card::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .4s;pointer-events:none;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(143,212,255,.09),transparent 65%)}
+.f-card:hover{transform:translateY(-5px);border-color:rgba(143,212,255,.42);
+  box-shadow:0 26px 64px -26px rgba(47,111,237,.4)}
+.f-card:hover::before{opacity:1}
+.f-card h3{font:600 1.18rem var(--font-display);color:var(--text);letter-spacing:-.01em;margin-bottom:.6rem}
+.f-card p{color:var(--muted);font-size:.93rem;line-height:1.7;margin-bottom:1.4rem}
+.f-visual{border-top:1px solid var(--line-soft);padding-top:1.1rem;min-height:88px;display:flex;flex-direction:column;gap:8px}
+.map-row{display:flex;align-items:center;gap:.55rem;font:.72rem var(--font-mono);color:var(--muted)}
+.map-row .arrow{color:var(--signal)}
+.map-row .check{color:var(--ice);margin-left:auto}
+.map-row .src{color:var(--faint)}
+.kpi-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi-tile{background:rgba(11,24,48,.8);border:1px solid var(--line-soft);border-radius:10px;padding:10px 8px;text-align:center}
+.kpi-tile .kt{display:block;font:.54rem var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:.35rem;white-space:nowrap}
+.kpi-tile .kv{font:600 .82rem var(--font-mono);color:var(--ice)}
+.clean-row{display:flex;align-items:center;gap:.6rem;font:.7rem var(--font-mono)}
+.clean-row .messy{color:rgba(232,238,249,.32);text-decoration:line-through;text-decoration-color:rgba(143,212,255,.45)}
+.clean-row .arrow{color:var(--signal)}
+.clean-row .ok{color:var(--ice)}
+.clean-row .tag{font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+.features-caption{margin-top:1.4rem;font:.68rem var(--font-mono);letter-spacing:.08em;color:var(--faint);text-align:center}
+
+/* ---- founder note ---- */
+.note{background:linear-gradient(180deg,var(--void),rgba(27,58,107,.16) 50%,var(--void))}
+.note-panel{max-width:840px;margin:0 auto;text-align:center;position:relative;overflow:hidden;
+  border:1px solid var(--line);border-radius:22px;padding:64px 40px;background:rgba(11,24,48,.55)}
+.note-panel::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(620px 300px at 50% -10%,rgba(47,111,237,.16),transparent 70%)}
+.note-panel .marker{justify-content:center}
+.note-panel .marker::after{display:none}
+.note-panel .marker::before{content:"";width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(47,111,237,.6))}
+.note-panel h2{margin-inline:auto}
+.note-panel p{color:var(--muted);font-size:1.05rem;line-height:1.85;position:relative}
+.note-panel p+p{margin-top:1.1rem}
+.note-sign{margin-top:2.1rem;font:.72rem var(--font-mono);letter-spacing:.26em;text-transform:uppercase;color:var(--ice)}
+
+/* ---- final CTA ---- */
+.cta{background:radial-gradient(820px 420px at 50% 0%,rgba(47,111,237,.15),transparent 65%),var(--ink)}
+.cta-panel{position:relative;text-align:center;overflow:hidden;padding:110px 24px;
+  border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+.cta-sigma{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);pointer-events:none;user-select:none;
+  font:700 clamp(16rem,44vw,32rem)/1 var(--font-display);color:rgba(47,111,237,.055);letter-spacing:-.04em}
+.cta-panel h2{max-width:20ch;margin-inline:auto;position:relative}
+.cta-panel p{position:relative;color:var(--muted);font-size:1.05rem}
+.cta-panel .btn{position:relative;margin-top:2.2rem}
+.cta-panel .btn-primary{font-size:1.05rem;padding:1.05rem 1.9rem}
+.cta-micro{margin-top:1.2rem;position:relative;font:.68rem var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+
+/* ---- footer ---- */
+footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px 0}
+.foot-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:1.6rem;flex-wrap:wrap}
+.foot-tag{color:var(--faint);font-size:.84rem;max-width:36ch}
+.foot-right{margin-left:auto;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.foot-built{font:.62rem var(--font-mono);letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.foot-open{font:.84rem var(--font-body);color:var(--ice);text-decoration:none;border-bottom:1px solid rgba(143,212,255,.3);padding-bottom:2px;transition:border-color .2s}
+.foot-open:hover{border-color:var(--ice)}
+.foot-rights{flex-basis:100%;font:.66rem var(--font-mono);letter-spacing:.14em;color:var(--faint);opacity:.7}
+
+/* ---- reveal ---- */
+.reveal{opacity:0;transform:translateY(26px);
+  transition:opacity .75s ease,transform .75s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.reveal.in-view{opacity:1;transform:none}
+
+/* ---- responsive ---- */
+@media (max-width:1024px){
+  .problem-grid{grid-template-columns:1fr;gap:44px}
+  .steps{grid-template-columns:1fr;gap:18px}
+  .connector{display:none}
+  .f-grid{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  section{padding:84px 0}
+  .nav-links{display:none}
+  .nav-cta .btn{display:none}
+  .burger{display:flex}
+  .chip{display:none}
+  .scene-ui{display:none}
+  .hero-scrollcue{display:none}
+  .hero-grad{background:linear-gradient(180deg,rgba(5,11,24,.9) 0%,rgba(5,11,24,.55) 42%,rgba(5,11,24,.82) 100%)}
+  .hero-inner{padding-top:110px}
+  .hero-copy{max-width:100%}
+  .clean-strip{flex-direction:column}
+  .kpi-tiles{grid-template-columns:repeat(2,1fr)}
+  .note-panel{padding:48px 26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;
+    transition-duration:.001s!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+  .chip .dot,.dots span{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="noise" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- ======================= NAV ======================= -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="logo" href="#top" aria-label="Sigma — home">
+      <span class="logo-mark" aria-hidden="true">Σ</span>
+      <span>
+        <span class="logo-name">Sigma</span>
+        <span class="logo-sub">Sales Analytics</span>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how" data-i18n="nav_how">How it works</a>
+      <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#note" data-i18n="nav_note">Our note</a>
+    </nav>
+    <div class="nav-cta">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button class="lang-btn" data-lang="en" type="button">EN</button>
+        <button class="lang-btn" data-lang="bm" type="button">BM</button>
+      </div>
+      <a class="btn btn-primary" data-href data-i18n="nav_cta">Try it with your data</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<div class="nav-menu" id="navMenu" aria-hidden="true">
+  <a class="nm-link" href="#how" data-i18n="nav_how">How it works</a>
+  <a class="nm-link" href="#features" data-i18n="nav_features">Features</a>
+  <a class="nm-link" href="#note" data-i18n="nav_note">Our note</a>
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button class="lang-btn" data-lang="en" type="button">EN</button>
+    <button class="lang-btn" data-lang="bm" type="button">BM</button>
+  </div>
+  <a class="btn btn-primary" data-href data-i18n="nav_cta">Try it with your data</a>
+</div>
+
+<main id="top">
+
+<!-- ======================= HERO ======================= -->
+<section class="hero" id="hero" aria-label="Sigma hero">
+  <canvas id="hero-scene" aria-hidden="true"></canvas>
+  <svg class="hero-fallback" viewBox="0 0 420 260" aria-label="Illustration of a rising bar chart" role="img">
+    <defs>
+      <linearGradient id="fbg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#2F6FED"/><stop offset="1" stop-color="#8FD4FF"/>
+      </linearGradient>
+    </defs>
+    <g fill="none" stroke="rgba(143,212,255,.25)" stroke-width="1">
+      <path d="M20 230 H400"/><path d="M20 180 H400"/><path d="M20 130 H400"/><path d="M20 80 H400"/>
+    </g>
+    <g fill="url(#fbg)" opacity=".9">
+      <rect x="40" y="170" width="34" height="60" rx="3"/>
+      <rect x="96" y="150" width="34" height="80" rx="3"/>
+      <rect x="152" y="124" width="34" height="106" rx="3"/>
+      <rect x="208" y="100" width="34" height="130" rx="3"/>
+      <rect x="264" y="72" width="34" height="158" rx="3"/>
+      <rect x="320" y="44" width="34" height="186" rx="3"/>
+    </g>
+    <path d="M38 220 L370 40" stroke="#8FD4FF" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5 6"/>
+  </svg>
+  <div class="hero-grad" aria-hidden="true"></div>
+
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow reveal" data-i18n="hero_eyebrow">// Your sales data · One clear signal</p>
+      <h1>
+        <span class="h1-block reveal" data-i18n="h1a" style="--d:.05s">See what's actually happening in your sales.</span>
+        <span class="h1-block h1-ice reveal" data-i18n="h1b" style="--d:.14s">Without hiring a data analyst.</span>
+      </h1>
+      <p class="hero-sub reveal" data-i18n="hero_sub" style="--d:.22s">Drop in the CSV or Excel export from your POS. Sigma reads it, cleans it, and turns it into a dashboard and an AI agent you can ask questions in English or Bahasa Melayu — in under a minute.</p>
+      <div class="hero-cta reveal" style="--d:.3s">
+        <a class="btn btn-primary" data-href data-i18n="cta_primary">Try it with your data</a>
+        <a class="btn btn-ghost" href="#how" data-i18n="cta_secondary">See how it works</a>
+      </div>
+      <p class="hero-micro reveal" data-i18n="hero_micro" style="--d:.38s">CSV · XLSX · No account · Your file stays on your machine</p>
+    </div>
+  </div>
+
+  <div class="chip chip-1" data-sp="0.05" aria-hidden="true"><span class="dot"></span>Σ <b>TOTAL_SALES</b> = RM 128,940.00</div>
+  <div class="chip chip-2" data-sp="0.11" aria-hidden="true"><span class="dot"></span>✓ <b>"Jumlah"</b> → amount_col · auto-detected</div>
+  <div class="chip chip-3" data-sp="0.03" aria-hidden="true"><span class="dot"></span>↗ <b>trend</b> +12.4% vs prev. period</div>
+
+  <div class="scene-ui" aria-hidden="true">
+    <button class="scene-replay" id="sceneReplay" type="button" data-i18n="replay">⟳ Replay</button>
+    <span class="scene-caption" data-i18n="scene_caption">Illustrative rendering · figures are placeholders</span>
+  </div>
+
+  <div class="hero-trust">
+    <div class="trust-row reveal">
+      <span class="trust-chip" data-i18n="trust_1">POS Exports</span>
+      <span class="trust-chip" data-i18n="trust_2">Excel Files</span>
+      <span class="trust-chip" data-i18n="trust_3">Bahasa Melayu</span>
+      <span class="trust-chip" data-i18n="trust_4">English Columns</span>
+      <span class="trust-chip" data-i18n="trust_5">No Account</span>
+      <span class="trust-chip" data-i18n="trust_6">File Stays Yours</span>
+    </div>
+  </div>
+
+  <div class="hero-scrollcue" aria-hidden="true"><span data-i18n="scroll_label">Scroll</span></div>
+</section>
+
+<!-- ======================= PROBLEM ======================= -->
+<section class="problem" id="problem">
+  <div class="wrap">
+    <p class="marker reveal" data-i18n="p_marker">01 — The problem</p>
+    <div class="problem-grid">
+      <div class="problem-copy">
+        <h2 class="reveal" data-i18n="p_h2">Your data isn't the problem. Finding time to read it is.</h2>
+        <p class="reveal" data-i18n="p_1">Every week, you hit export. The CSV lands in a folder. And that's where it stays — because you're busy running the shop, and nobody ever taught you pivot tables.</p>
+        <p class="reveal" data-i18n="p_2" data-i18n-html>That spike during Ramadan you felt? The export knows. The quiet week after school holidays? The export knows too. It's all sitting there — in columns called <span class="mono-em">Tarikh</span>, <span class="mono-em">Jumlah</span> and <span class="mono-em">Produk</span> — waiting for someone with an hour to spare.</p>
+      </div>
+      <div class="reveal">
+        <div class="mock-card">
+          <div class="mock-head">
+            <span class="mock-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>pos_export_2024.csv</span>
+            <span class="mock-title" data-i18n="mock_title">Untouched for 3 months</span>
+          </div>
+          <table class="mock-table">
+            <thead><tr><th>Tarikh</th><th>Jumlah</th><th>Produk</th><th>Bayaran</th></tr></thead>
+            <tbody>
+              <tr><td class="ok">2024-03-05</td><td class="bad">RM 1,2xx.50</td><td class="ok">Nasi Lemak Ayam</td><td class="ok">TNG</td></tr>
+              <tr><td class="ok">05/03/2024</td><td class="ok">8.50</td><td class="ok">Teh Tarik</td><td class="ok">Cash</td></tr>
+              <tr><td class="bad">NULL</td><td class="ok">RM 25.00</td><td class="bad">NULL</td><td class="ok">TNG</td></tr>
+              <tr><td class="ok">2024-03-07</td><td class="ok">2.50</td><td class="ok">Roti Canai</td><td class="ok">Cash</td></tr>
+              <tr><td class="ok">08/03/2024</td><td class="bad">rm 1,285.00</td><td class="ok">Mee Goreng</td><td class="ok">Grab</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mock-caption reveal" data-i18n="mock_caption">A real export from a real POS. Messy headers, mixed formats, blank rows — Sigma handles all of it.</p>
+        <div class="transform reveal" data-i18n="transform_label">Sigma cleans &amp; maps this →</div>
+        <div class="clean-strip reveal">
+          <div class="clean-kpi"><span class="k" data-i18n="clean_k1">Total Sales</span><span class="v">RM 42,180.00</span></div>
+          <div class="clean-kpi"><span class="k" data-i18n="clean_k2">Transactions</span><span class="v">1,204</span></div>
+          <div class="clean-kpi"><span class="k" data-i18n="clean_k3">Trend</span><span class="v"><span class="up">↗</span> +12.4%</span></div>
+        </div>
+        <p class="mock-caption reveal" data-i18n="clean_caption">Placeholder figures — the dashboard returns these from your own file.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ======================= HOW IT WORKS ======================= -->
+<section class="how" id="how">
+  <div class="wrap">
+    <p class="marker reveal" data-i18n="how_marker">02 — How it works</p>
+    <h2 class="reveal" data-i18n="how_h2">Three steps. No training required.</h2>
+    <div class="steps">
+      <div class="connector" aria-hidden="true"></div>
+
+      <article class="step-card glow reveal" style="--d:.05s">
+        <div class="step-top"><span class="step-label" data-i18n="s_label">Step</span><span class="step-num">01</span></div>
+        <h3 data-i18n="s1_t">Upload your file</h3>
+        <p data-i18n="s1_d">Drop in a CSV or Excel export straight from your POS or accounting system. No templates, no setup — Sigma reads the columns itself.</p>
+        <div class="step-visual">
+          <div class="upload-box">
+            <span class="file-chip"><span class="file-ic" aria-hidden="true">Σ</span>export_2024.csv</span>
+            <span class="upload-tag" data-i18n="s1_tag">POS / Excel · CSV or XLSX</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="step-card glow reveal" style="--d:.14s">
+        <div class="step-top"><span class="step-label" data-i18n="s_label">Step</span><span class="step-num">02</span></div>
+        <h3 data-i18n="s2_t">Get your dashboard instantly</h3>
+        <p data-i18n="s2_d">KPIs, sales trend, top products, category breakdown — generated in seconds. Filter by month, product or category without touching a formula.</p>
+        <div class="step-visual">
+          <svg class="spark" viewBox="0 0 140 46" aria-hidden="true">
+            <defs>
+              <linearGradient id="sg" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#2F6FED"/><stop offset="1" stop-color="#8FD4FF"/>
+              </linearGradient>
+            </defs>
+            <g class="spark-bars" fill="rgba(47,111,237,.28)">
+              <rect x="8" y="24" width="10" height="16" rx="2"/>
+              <rect x="26" y="20" width="10" height="20" rx="2"/>
+              <rect x="44" y="22" width="10" height="18" rx="2"/>
+              <rect x="62" y="14" width="10" height="26" rx="2"/>
+              <rect x="80" y="10" width="10" height="30" rx="2"/>
+            </g>
+            <path class="spark-line" d="M6 34 C 22 30, 32 32, 46 24 S 74 26, 88 16 S 122 18, 134 6"
+              fill="none" stroke="url(#sg)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </article>
+
+      <article class="step-card glow reveal" style="--d:.23s">
+        <div class="step-top"><span class="step-label" data-i18n="s_label">Step</span><span class="step-num">03</span></div>
+        <h3 data-i18n="s3_t">Ask questions in plain words</h3>
+        <p data-i18n="s3_d">“Bandingkan jualan minggu ini dengan minggu lepas.” Sigma answers in the language you asked in — with real numbers from your data, not guesses.</p>
+        <div class="step-visual">
+          <div class="bubble">Bandingkan jualan minggu ini dengan minggu lepas<span class="dots" aria-hidden="true"><span></span><span></span><span></span></span></div>
+          <div class="bubble reply">↗ Jualan minggu ini naik berbanding minggu lepas</div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FEATURES ======================= -->
+<section class="features" id="features">
+  <div class="wrap">
+    <p class="marker reveal" data-i18n="f_marker">03 — Features</p>
+    <h2 class="reveal" data-i18n="f_h2">Built for real exports, not perfect ones.</h2>
+    <div class="f-grid">
+
+      <article class="f-card glow reveal" style="--d:.05s">
+        <h3 data-i18n="f1_t">Auto-detect columns</h3>
+        <p data-i18n="f1_d" data-i18n-html>Sigma recognises <span class="mono-em">Tarikh</span>, <span class="mono-em">Jumlah</span>, <span class="mono-em">Produk</span> — or <span class="mono-em">Date</span>, <span class="mono-em">Amount</span>, <span class="mono-em">Item</span> — and maps them for you. If it guesses wrong, one dropdown fixes it.</p>
+        <div class="f-visual" aria-hidden="true">
+          <div class="map-row"><span class="src">"Tarikh"</span><span class="arrow">→</span> date_col<span class="check">✓</span></div>
+          <div class="map-row"><span class="src">"Jumlah"</span><span class="arrow">→</span> amount_col<span class="check">✓</span></div>
+          <div class="map-row"><span class="src">"Produk"</span><span class="arrow">→</span> product_col<span class="check">✓</span></div>
+        </div>
+      </article>
+
+      <article class="f-card glow reveal" style="--d:.14s">
+        <h3 data-i18n="f2_t">A bilingual AI agent</h3>
+        <p data-i18n="f2_d">Ask in English or Bahasa Melayu. Get sales summaries, top items, period comparisons and recommendations back in the same language.</p>
+        <div class="f-visual" aria-hidden="true">
+          <div class="bubble">"Apa item paling laris?"</div>
+          <div class="bubble reply">Nasi Lemak Ayam — RM 8,940 · 34% jualan</div>
+          <div class="bubble reply" style="margin-left:0;margin-top:8px">"Bandingkan April dengan Mac." → <b>+12.4%</b></div>
+        </div>
+      </article>
+
+      <article class="f-card glow reveal" style="--d:.23s">
+        <h3 data-i18n="f3_t">KPIs and charts, instantly</h3>
+        <p data-i18n="f3_d">Total sales, transactions, average order value, best day — plus trend, top-products and category charts that respond to your filters.</p>
+        <div class="f-visual" aria-hidden="true">
+          <div class="kpi-tiles">
+            <div class="kpi-tile"><span class="kt" data-i18n="clean_k1">Total Sales</span><span class="kv">RM 42.1k</span></div>
+            <div class="kpi-tile"><span class="kt" data-i18n="clean_k2">Transactions</span><span class="kv">1,204</span></div>
+            <div class="kpi-tile"><span class="kt" data-i18n="f3_ao">Avg Order</span><span class="kv">RM 35.00</span></div>
+            <div class="kpi-tile"><span class="kt" data-i18n="f3_bd">Best Day</span><span class="kv">Saturday</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="f-card glow reveal" style="--d:.32s">
+        <h3 data-i18n="f4_t">Handles messy exports</h3>
+        <p data-i18n="f4_d">RM signs, commas, mixed date formats, BM column names, blank rows. Sigma cleans what Excel left behind — quietly.</p>
+        <div class="f-visual" aria-hidden="true">
+          <div class="clean-row"><span class="messy">RM 1,2xx.50</span><span class="arrow">→</span><span class="ok">1,285.00</span></div>
+          <div class="clean-row"><span class="messy">05/03/2024</span><span class="arrow">→</span><span class="ok">2024-03-05</span></div>
+          <div class="clean-row"><span class="messy">NULL</span><span class="arrow">→</span><span class="tag" data-i18n="f4_drop">dropped</span></div>
+        </div>
+      </article>
+
+    </div>
+    <p class="features-caption reveal" data-i18n="f_caption">Placeholder figures shown for illustration — you'll see your own numbers.</p>
+  </div>
+</section>
+
+<!-- ======================= FOUNDER NOTE ======================= -->
+<section class="note" id="note">
+  <div class="wrap">
+    <div class="note-panel reveal">
+      <p class="marker" data-i18n="n_marker">04 — Our note</p>
+      <h2 data-i18n="n_h2">A note from the builders.</h2>
+      <p data-i18n="n_1">We built Sigma because we kept watching good business owners export their sales reports and never look at them again. Not because they don't care — because they don't have a spare hour to learn pivot tables.</p>
+      <p data-i18n="n_2">Sigma is that spare hour. No account. No onboarding call. Upload a file, ask a question, get an answer. We'd rather earn your trust with a working tool than with marketing words — so there are no invented testimonials on this page. You'll judge Sigma by what it actually does.</p>
+      <p class="note-sign" data-i18n="n_sign">— The Sigma team</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FINAL CTA ======================= -->
+<section class="cta" id="cta">
+  <div class="cta-panel">
+    <span class="cta-sigma" aria-hidden="true">Σ</span>
+    <h2 class="reveal" data-i18n="c_h2">Ready to see what your sales have been trying to tell you?</h2>
+    <p class="reveal" data-i18n="c_sub">Upload a file. Get your first answer in under a minute. No account, no card.</p>
+    <div class="reveal"><a class="btn btn-primary" data-href data-i18n="c_cta">Try it with your data</a></div>
+    <p class="cta-micro reveal" data-i18n="c_micro">Works with CSV &amp; Excel · English or Bahasa Melayu</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ======================= FOOTER ======================= -->
+<footer>
+  <div class="foot-inner">
+    <a class="logo" href="#top" aria-label="Sigma — home">
+      <span class="logo-mark" aria-hidden="true">Σ</span>
+      <span>
+        <span class="logo-name">Sigma</span>
+        <span class="logo-sub">Sales Analytics</span>
+      </span>
+    </a>
+    <p class="foot-tag" data-i18n="foot_tag">AI-powered sales analytics for Malaysian small businesses.</p>
+    <div class="foot-right">
+      <span class="foot-built" data-i18n="foot_built">Built with Streamlit · Gemini · Plotly</span>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button class="lang-btn" data-lang="en" type="button">EN</button>
+        <button class="lang-btn" data-lang="bm" type="button">BM</button>
+      </div>
+      <a class="foot-open" data-href data-i18n="foot_open">Open the app ↗</a>
+    </div>
+    <p class="foot-rights" data-i18n="foot_rights">© 2026 Sigma · Built in Malaysia</p>
+  </div>
+</footer>
+
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* Auto-detect the live Sigma dashboard.
+
+     Streamlit's default port is 8501 and it walks upward if occupied, so we
+     probe a range of common ports and point every CTA at the first one that
+     answers on /_stcore/health. If this page is served over http(s), we also
+     try its own origin. Falls back to the default 8501 if nothing responds.
+
+     Override manually with a query param, e.g. landing.html?app=http://host:PORT
+  */
+  var DEFAULT_APP_URL = "http://localhost:8501";
+  var links = Array.prototype.slice.call(document.querySelectorAll("[data-href]"));
+
+  function pointAt(url) {
+    links.forEach(function (a) { a.href = url; });
+  }
+  pointAt(DEFAULT_APP_URL);
+
+  /* 1) Explicit override: landing.html?app=http://host:PORT */
+  var qp = new URLSearchParams(window.location.search);
+  var override = qp.get("app");
+  if (override && /^https?:\/\//i.test(override)) {
+    pointAt(override.replace(/\/+$/, ""));
+  } else {
+    /* 2) Auto-detect: Streamlit walks upward from 8501 when occupied, so probe
+       a range of common ports and point every CTA at the first live one. Only
+       ports that answer /_stcore/health are accepted, so a random static server
+       on another port can't hijack the buttons. */
+    var candidates = [];
+    var p;
+    for (p = 8501; p <= 8515; p++) candidates.push("http://localhost:" + p);
+
+    var settled = false;
+    function settle(url) {
+      if (settled) return;
+      settled = true;
+      pointAt(url);
+    }
+
+    candidates.forEach(function (base) {
+      var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var opts = { method: "GET", mode: "no-cors", cache: "no-store" };
+      if (ctrl) opts.signal = ctrl.signal;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 700);
+
+      fetch(base + "/_stcore/health", opts)
+        .then(function () { clearTimeout(timer); settle(base); })
+        .catch(function () { clearTimeout(timer); });
+    });
+
+    /* If no candidate responded within the probe window, keep the default URL. */
+    setTimeout(function () { settle(DEFAULT_APP_URL); }, 2600);
+  }
+
+  /* ============================================================
+     i18n — EN / BM
+     ============================================================ */
+  var I18N = {
+    en: {
+      meta_title: "Sigma — Sales analytics for Malaysian small businesses",
+      nav_how: "How it works", nav_features: "Features", nav_note: "Our note", nav_cta: "Try it with your data",
+      hero_eyebrow: "// Your sales data · One clear signal",
+      h1a: "See what's actually happening in your sales.",
+      h1b: "Without hiring a data analyst.",
+      hero_sub: "Drop in the CSV or Excel export from your POS. Sigma reads it, cleans it, and turns it into a dashboard and an AI agent you can ask questions in English or Bahasa Melayu — in under a minute.",
+      cta_primary: "Try it with your data", cta_secondary: "See how it works",
+      hero_micro: "CSV · XLSX · No account · No setup required",
+      trust_1: "POS Exports", trust_2: "Excel Files", trust_3: "Bahasa Melayu",
+      trust_4: "English Columns", trust_5: "No Account", trust_6: "No Credit Card",
+      scroll_label: "Scroll", replay: "⟳ Replay",
+      scene_caption: "Illustrative rendering · figures are placeholders",
+      p_marker: "01 — The problem",
+      p_h2: "Your data isn't the problem. Finding time to read it is.",
+      p_1: "Every week, you hit export. The CSV lands in a folder. And that's where it stays — because you're busy running the shop, and nobody ever taught you pivot tables.",
+      p_2: "That spike during Ramadan you felt? The export knows. The quiet week after school holidays? The export knows too. It's all sitting there — in columns called <span class=\"mono-em\">Tarikh</span>, <span class=\"mono-em\">Jumlah</span> and <span class=\"mono-em\">Produk</span> — waiting for someone with an hour to spare.",
+      mock_title: "Untouched for 3 months",
+      mock_caption: "A real export from a real POS. Messy headers, mixed formats, blank rows — Sigma handles all of it.",
+      transform_label: "Sigma cleans & maps this →",
+      clean_k1: "Total Sales", clean_k2: "Transactions", clean_k3: "Trend",
+      clean_caption: "Placeholder figures — the dashboard returns these from your own file.",
+      how_marker: "02 — How it works",
+      how_h2: "Three steps. No training required.",
+      s_label: "Step",
+      s1_t: "Upload your file",
+      s1_d: "Drop in a CSV or Excel export straight from your POS or accounting system. No templates, no setup — Sigma reads the columns itself.",
+      s1_tag: "POS / Excel · CSV or XLSX",
+      s2_t: "Get your dashboard instantly",
+      s2_d: "KPIs, sales trend, top products, category breakdown — generated in seconds. Filter by month, product or category without touching a formula.",
+      s3_t: "Ask questions in plain words",
+      s3_d: "“Bandingkan jualan minggu ini dengan minggu lepas.” Sigma answers in the language you asked in — with real numbers from your data, not guesses.",
+      f_marker: "03 — Features",
+      f_h2: "Built for real exports, not perfect ones.",
+      f1_t: "Auto-detect columns",
+      f1_d: "Sigma recognises <span class=\"mono-em\">Tarikh</span>, <span class=\"mono-em\">Jumlah</span>, <span class=\"mono-em\">Produk</span> — or <span class=\"mono-em\">Date</span>, <span class=\"mono-em\">Amount</span>, <span class=\"mono-em\">Item</span> — and maps them for you. If it guesses wrong, one dropdown fixes it.",
+      f2_t: "A bilingual AI agent",
+      f2_d: "Ask in English or Bahasa Melayu. Get sales summaries, top items, period comparisons and recommendations back in the same language.",
+      f3_t: "KPIs and charts, instantly",
+      f3_d: "Total sales, transactions, average order value, best day — plus trend, top-products and category charts that respond to your filters.",
+      f3_ao: "Avg Order", f3_bd: "Best Day",
+      f4_t: "Handles messy exports",
+      f4_d: "RM signs, commas, mixed date formats, BM column names, blank rows. Sigma cleans what Excel left behind — quietly.",
+      f4_drop: "dropped",
+      f_caption: "Placeholder figures shown for illustration — you'll see your own numbers.",
+      n_marker: "04 — Our note",
+      n_h2: "A note from the builders.",
+      n_1: "We built Sigma because we kept watching good business owners export their sales reports and never look at them again. Not because they don't care — because they don't have a spare hour to learn pivot tables.",
+      n_2: "Sigma is that spare hour. No account. No onboarding call. Upload a file, ask a question, get an answer. We'd rather earn your trust with a working tool than with marketing words — so there are no invented testimonials on this page. You'll judge Sigma by what it actually does.",
+      n_sign: "— The Sigma team",
+      c_h2: "Ready to see what your sales have been trying to tell you?",
+      c_sub: "Upload a file. Get your first answer in under a minute. No account, no card.",
+      c_cta: "Try it with your data",
+      c_micro: "Works with CSV & Excel · English or Bahasa Melayu",
+      foot_tag: "AI-powered sales analytics for Malaysian small businesses.",
+      foot_built: "Built with Streamlit · Gemini · Plotly",
+      foot_open: "Open the app ↗",
+      foot_rights: "© 2026 Sigma · Built in Malaysia"
+    },
+    bm: {
+      meta_title: "Sigma — Analitis jualan untuk perniagaan kecil Malaysia",
+      nav_how: "Cara ia berfungsi", nav_features: "Ciri-ciri", nav_note: "Nota kami", nav_cta: "Cuba dengan data anda",
+      hero_eyebrow: "// Data jualan anda · Satu isyarat jelas",
+      h1a: "Lihat apa yang sebenarnya berlaku dalam jualan anda.",
+      h1b: "Tanpa mengupah penganalisis data.",
+      hero_sub: "Muat naik eksport CSV atau Excel daripada POS anda. Sigma membacanya, membersihkannya, dan menjadikannya dashboard serta ejen AI yang boleh anda tanya dalam Bahasa Melayu atau English — dalam masa kurang seminit.",
+      cta_primary: "Cuba dengan data anda", cta_secondary: "Lihat cara ia berfungsi",
+      hero_micro: "CSV · XLSX · Tanpa akaun · Tiada persediaan",
+      trust_1: "Eksport POS", trust_2: "Fail Excel", trust_3: "Bahasa Melayu",
+      trust_4: "Lajur English", trust_5: "Tanpa Akaun",      trust_6: "Tanpa Kad Kredit",
+      scroll_label: "Turun", replay: "⟳ Ulang",
+      scene_caption: "Rendering ilustratif · angka hanyalah contoh",
+      p_marker: "01 — Masalahnya",
+      p_h2: "Data anda bukan masalahnya. Masalahnya, tiada masa untuk membacanya.",
+      p_1: "Setiap minggu, anda tekan butang eksport. Fail CSV masuk ke folder. Dan di situlah ia tinggal — kerana anda sibuk menguruskan kedai, dan tiada siapa pernah mengajar anda pivot table.",
+      p_2: "Lonjakan jualan masa Ramadan yang anda rasakan? Fail eksport tahu. Minggu sunyi selepas cuti sekolah? Ia juga tahu. Semuanya ada di situ — dalam lajur bernama <span class=\"mono-em\">Tarikh</span>, <span class=\"mono-em\">Jumlah</span> dan <span class=\"mono-em\">Produk</span> — menunggu seseorang yang ada masa sejam.",
+      mock_title: "Tak dibuka 3 bulan",
+      mock_caption: "Eksport sebenar daripada POS sebenar. Lajur berselerak, format bercampur, baris kosong — Sigma uruskan semuanya.",
+      transform_label: "Sigma membersih & memetakan ini →",
+      clean_k1: "Jumlah Jualan", clean_k2: "Transaksi", clean_k3: "Trend",
+      clean_caption: "Angka contoh — inilah yang dashboard akan paparkan, dengan nombor anda sendiri.",
+      how_marker: "02 — Cara ia berfungsi",
+      how_h2: "Tiga langkah. Tiada latihan diperlukan.",
+      s_label: "Langkah",
+      s1_t: "Muat naik fail anda",
+      s1_d: "Letakkan eksport CSV atau Excel terus daripada POS atau sistem perakaunan anda. Tiada templat, tiada persediaan — Sigma membaca sendiri lajur-lajurnya.",
+      s1_tag: "POS / Excel · CSV atau XLSX",
+      s2_t: "Dapatkan dashboard serta-merta",
+      s2_d: "KPI, trend jualan, produk teratas, pecahan kategori — dijana dalam beberapa saat. Tapis mengikut bulan, produk atau kategori tanpa menyentuh formula.",
+      s3_t: "Tanya soalan dalam bahasa mudah",
+      s3_d: "“Bandingkan jualan minggu ini dengan minggu lepas.” Sigma menjawab dalam bahasa yang anda gunakan — dengan nombor sebenar daripada data anda, bukan agakan.",
+      f_marker: "03 — Ciri-ciri",
+      f_h2: "Dibina untuk eksport sebenar, bukan data yang sempurna.",
+      f1_t: "Mengesan lajur secara automatik",
+      f1_d: "Sigma mengenali <span class=\"mono-em\">Tarikh</span>, <span class=\"mono-em\">Jumlah</span>, <span class=\"mono-em\">Produk</span> — atau <span class=\"mono-em\">Date</span>, <span class=\"mono-em\">Amount</span>, <span class=\"mono-em\">Item</span> — dan memetakannya untuk anda. Jika tersilap, satu menu lungsur membetulkannya.",
+      f2_t: "Ejen AI dwibahasa",
+      f2_d: "Tanya dalam Bahasa Melayu atau English. Dapatkan ringkasan jualan, item teratas, perbandingan tempoh dan cadangan dalam bahasa yang sama.",
+      f3_t: "KPI dan carta serta-merta",
+      f3_d: "Jumlah jualan, transaksi, nilai purata pesanan, hari terbaik — serta carta trend, produk teratas dan kategori yang bertindak balas terhadap tapisan anda.",
+      f3_ao: "Purata Pesanan", f3_bd: "Hari Terbaik",
+      f4_t: "Urus eksport yang berselerak",
+      f4_d: "Tanda RM, koma, format tarikh bercampur, nama lajur BM, baris kosong. Sigma membersihkan apa yang Excel tinggalkan — secara senyap.",
+      f4_drop: "dibuang",
+      f_caption: "Angka contoh untuk ilustrasi — anda akan lihat nombor anda sendiri.",
+      n_marker: "04 — Nota kami",
+      n_h2: "Nota daripada kami, para pembina.",
+      n_1: "Kami membina Sigma kerana kami sering melihat pemilik perniagaan yang baik mengeksport laporan jualan mereka dan tidak pernah membacanya semula. Bukan kerana mereka tidak ambil peduli — tetapi kerana tiada masa lapang untuk belajar pivot table.",
+      n_2: "Sigma ialah masa lapang itu. Tanpa akaun. Tanpa panggilan onboarding. Muat naik fail, tanya soalan, dapatkan jawapan. Kami lebih suka mendapat kepercayaan anda dengan alat yang berfungsi berbanding kata-kata pemasaran — sebab itu tiada testimoni rekaan di halaman ini. Nilailah Sigma berdasarkan apa yang ia benar-benar lakukan.",
+      n_sign: "— Pasukan Sigma",
+      c_h2: "Bersedia untuk melihat apa yang data jualan anda cuba beritahu anda?",
+      c_sub: "Muat naik fail. Dapatkan jawapan pertama dalam masa kurang seminit. Tanpa akaun, tanpa kad.",
+      c_cta: "Cuba dengan data anda",
+      c_micro: "Menyokong CSV & Excel · English atau Bahasa Melayu",
+      foot_tag: "Analitis jualan dikuasakan AI untuk perniagaan kecil Malaysia.",
+      foot_built: "Dibina dengan Streamlit · Gemini · Plotly",
+      foot_open: "Buka aplikasi ↗",
+      foot_rights: "© 2026 Sigma · Dibina di Malaysia"
+    }
+  };
+
+  var lang = "en";
+  try { lang = localStorage.getItem("sigma-lang") || "en"; } catch (e) {}
+  if (lang !== "en" && lang !== "bm") lang = "en";
+
+  function applyLang(l) {
+    lang = l;
+    try { localStorage.setItem("sigma-lang", l); } catch (e) {}
+    var dict = I18N[l];
+    document.documentElement.lang = (l === "bm") ? "ms" : "en";
+    document.title = dict.meta_title;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n");
+      if (dict[k] == null) return;
+      if (el.hasAttribute("data-i18n-html")) el.innerHTML = dict[k];
+      else el.textContent = dict[k];
+    });
+    document.querySelectorAll(".lang-btn").forEach(function (b) {
+      var active = b.dataset.lang === l;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+  document.querySelectorAll(".lang-btn").forEach(function (b) {
+    b.addEventListener("click", function () { applyLang(b.dataset.lang); });
+  });
+  applyLang(lang);
+
+  /* ============================================================
+     Nav, burger, reveal, glow, parallax
+     ============================================================ */
+  var nav = document.getElementById("nav");
+  var burger = document.getElementById("burger");
+  var navMenu = document.getElementById("navMenu");
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+  function onScroll() {
+    nav.classList.toggle("scrolled", window.scrollY > 16);
+    if (reduceMotion) return;
+    var y = window.scrollY;
+    document.querySelectorAll(".chip").forEach(function (c) {
+      c.style.transform = "translateY(" + (y * parseFloat(c.dataset.sp || "0")) + "px)";
+    });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  burger.addEventListener("click", function () {
+    var open = document.body.classList.toggle("nav-open");
+    burger.setAttribute("aria-expanded", open);
+    navMenu.setAttribute("aria-hidden", !open);
+  });
+  navMenu.querySelectorAll("a").forEach(function (a) {
+    a.addEventListener("click", function () {
+      document.body.classList.remove("nav-open");
+      burger.setAttribute("aria-expanded", "false");
+      navMenu.setAttribute("aria-hidden", "true");
+    });
+  });
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("in-view"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+  // cursor-follow glow
+  document.querySelectorAll(".glow").forEach(function (card) {
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+      card.style.setProperty("--my", (e.clientY - r.top) + "px");
+    });
+  });
+
+  /* ============================================================
+     Hero — Three.js particle field → converges into a chart
+     ============================================================ */
+  var hero = document.getElementById("hero");
+  var canvas = document.getElementById("hero-scene");
+  var scene = null, camera = null, renderer = null, group = null;
+  var points = null, links = null, outline = null, sparks = null;
+  var N = 0, targets = [], home = [], P = [], startPos = null;
+  var phase = "drift";           // drift | converge | settled
+  var convergeStartedAt = 0;
+  var running = false, visible = true, animId = null;
+  var convergeTimer = null;
+  var wide = true;
+  var lastBuiltWidth = 0, lastWide = true;
+  var linkTimer = 0;
+
+  var COL_ICE = 0x8FD4FF, COL_SIGNAL = 0x2F6FED;
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+  function makeSprite() {
+    var c = document.createElement("canvas"); c.width = c.height = 64;
+    var g = c.getContext("2d");
+    var grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.3, "rgba(255,255,255,.85)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function allocate(n, total, weights) {
+    var exact = weights.map(function (w) { return w * total; });
+    var res = exact.map(Math.floor);
+    var rem = total - res.reduce(function (a, b) { return a + b; }, 0);
+    var order = exact.map(function (e, i) { return [e - Math.floor(e), i]; })
+      .sort(function (a, b) { return b[0] - a[0]; });
+    for (var i = 0; i < rem; i++) res[order[i % order.length][1]]++;
+    return res;
+  }
+
+  function buildTargets(count, w) {
+    var bars = w ? [0.6, 0.85, 1.1, 1.4, 1.65, 2.0, 2.35] : [0.7, 1.1, 1.5, 1.95, 2.4];
+    var base = -1.75, bw = 0.5, gap = 0.44;
+    var totalW = bars.length * (bw + gap) - gap;
+    var x0 = -totalW / 2;
+    var sum = bars.reduce(function (a, b) { return a + b; }, 0);
+    var trendN = Math.max(30, Math.round(count * 0.12));
+    var bodyN = count - trendN;
+    var alloc = allocate(bars.length, bodyN, bars.map(function (h) { return h / sum; }));
+    var pts = [];
+    bars.forEach(function (h, i) {
+      var n = alloc[i], cx = x0 + i * (bw + gap) + bw / 2;
+      var rows = Math.max(1, Math.min(50, Math.round(Math.sqrt(n * (bw / h)))));
+      var cols = Math.max(1, Math.ceil(n / rows));
+      var placed = 0;
+      for (var r = 0; r < rows && placed < n; r++) {
+        for (var c2 = 0; c2 < cols && placed < n; c2++) {
+          pts.push(new THREE.Vector3(
+            cx - bw / 2 + ((c2 + 0.5) / cols) * bw,
+            base + ((r + 0.5) / rows) * h,
+            (Math.random() - 0.5) * 0.45
+          ));
+          placed++;
+        }
+      }
+      while (placed < n) {
+        pts.push(new THREE.Vector3(
+          cx + (Math.random() - 0.5) * bw,
+          base + Math.random() * h,
+          (Math.random() - 0.5) * 0.45
+        ));
+        placed++;
+      }
+    });
+    var xA = x0 - 0.35, yA = base + 0.2;
+    var xB = x0 + totalW + 0.5, yB = base + Math.max.apply(null, bars) + 0.55;
+    for (var i = 0; i < trendN; i++) {
+      var t = i / (trendN - 1);
+      pts.push(new THREE.Vector3(xA + (xB - xA) * t, yA + (yB - yA) * t, (Math.random() - 0.5) * 0.3));
+    }
+    return pts.slice(0, count);
+  }
+
+  function buildOutlineGeo(w) {
+    var bars = w ? [0.6, 0.85, 1.1, 1.4, 1.65, 2.0, 2.35] : [0.7, 1.1, 1.5, 1.95, 2.4];
+    var base = -1.75, bw = 0.5, gap = 0.44;
+    var totalW = bars.length * (bw + gap) - gap;
+    var x0 = -totalW / 2;
+    var arr = [];
+    bars.forEach(function (h, i) {
+      var cx = x0 + i * (bw + gap) + bw / 2;
+      arr.push(new THREE.Vector3(cx - bw / 2, base, 0.8));
+      arr.push(new THREE.Vector3(cx - bw / 2, base + h, 0.8));
+      arr.push(new THREE.Vector3(cx + bw / 2, base + h, 0.8));
+      arr.push(new THREE.Vector3(cx + bw / 2, base, 0.8));
+    });
+    arr.push(new THREE.Vector3(x0 - 0.35, base + 0.2, 0.8));
+    arr.push(new THREE.Vector3(x0 + totalW + 0.5, base + Math.max.apply(null, bars) + 0.55, 0.8));
+    return new THREE.BufferGeometry().setFromPoints(arr);
+  }
+
+  function buildScene() {
+    var w = hero.clientWidth, h = hero.clientHeight;
+    wide = w >= 900;
+    lastBuiltWidth = w;
+    lastWide = wide;
+    var aspect = w / Math.max(h, 1);
+    var mult = aspect < 0.8 ? 0.5 : 1;
+    N = clamp(Math.round(1350 * (w / 1440) * mult), 280, 1500);
+    targets = buildTargets(N, wide);
+    // shuffle targets so particles cross paths while converging
+    for (var i = N - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = targets[i]; targets[i] = targets[j]; targets[j] = tmp;
+    }
+
+    var pos = new Float32Array(N * 3);
+    var col = new Float32Array(N * 3);
+    home = [];
+    var cIce = new THREE.Color(COL_ICE), cSig = new THREE.Color(COL_SIGNAL);
+    for (var k = 0; k < N; k++) {
+      var v = new THREE.Vector3(
+        (Math.random() - 0.5) * 9,
+        (Math.random() - 0.5) * 5.5,
+        (Math.random() - 0.5) * 4
+      );
+      home.push(v);
+      pos[k * 3] = v.x; pos[k * 3 + 1] = v.y; pos[k * 3 + 2] = v.z;
+      var mix = clamp((v.y + 2.5) / 5.5 * 0.8 + (Math.random() - 0.5) * 0.3, 0, 1);
+      var c = cSig.clone().lerp(cIce, mix);
+      col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    var mat = new THREE.PointsMaterial({
+      size: 0.09, map: makeSprite(), vertexColors: true, transparent: true, opacity: 0.95,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
+    });
+    points = new THREE.Points(geo, mat);
+    group.add(points);
+
+    // ambient sparks orbiting the chart
+    var sN = 34;
+    var sPos = new Float32Array(sN * 3);
+    for (var s = 0; s < sN; s++) sPos[s * 3 + 2] = 0;
+    var sGeo = new THREE.BufferGeometry();
+    sGeo.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
+    var sMat = new THREE.PointsMaterial({
+      size: 0.045, map: makeSprite(), color: COL_ICE, transparent: true, opacity: 0.75,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    sparks = new THREE.Points(sGeo, sMat);
+    group.add(sparks);
+    sparks.userData = [];
+    for (var s2 = 0; s2 < sN; s2++) {
+      sparks.userData.push({
+        rx: 2.6 + Math.random() * 1.6, ry: 1.2 + Math.random() * 0.9,
+        speed: 0.25 + Math.random() * 0.35, ph: Math.random() * Math.PI * 2,
+        y0: (Math.random() - 0.5) * 1.4
+      });
+    }
+    if (reduceMotion) {
+      var sArr = sparks.geometry.attributes.position.array;
+      sparks.userData.forEach(function (d, i) {
+        var a0 = d.ph;
+        sArr[i * 3] = Math.cos(a0) * d.rx;
+        sArr[i * 3 + 1] = Math.sin(a0) * d.ry * 0.6 + d.y0;
+        sArr[i * 3 + 2] = Math.sin(a0 * 0.5) * 0.5;
+      });
+      sparks.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // constellation links (drift phase only)
+    links = new THREE.LineSegments(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({ color: COL_SIGNAL, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    group.add(links);
+
+    // chart outline drawn after convergence
+    outline = new THREE.Line(
+      buildOutlineGeo(wide),
+      new THREE.LineBasicMaterial({ color: COL_ICE, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    group.add(outline);
+
+    P = [];
+    for (var p = 0; p < N; p++) {
+      P.push({ delay: Math.random() * 0.6, dur: 1.9 + Math.random() * 0.8, phase: Math.random() * Math.PI * 2 });
+    }
+
+    layout();
+    if (reduceMotion) snapToTargets();
+  }
+
+  function layout() {
+    var w = hero.clientWidth, h = hero.clientHeight;
+    var scale = clamp(Math.min(w / 1150, h / 660), 0.52, 1);
+    group.scale.setScalar(scale);
+    group.position.x = w > 860 ? 1.15 : 0;
+    group.position.y = 0;
+  }
+
+  function snapToTargets() {
+    if (!points) return;
+    var arr = points.geometry.attributes.position.array;
+    for (var i = 0; i < N; i++) {
+      arr[i * 3] = targets[i].x; arr[i * 3 + 1] = targets[i].y; arr[i * 3 + 2] = targets[i].z;
+    }
+    points.geometry.attributes.position.needsUpdate = true;
+    outline.geometry.setDrawRange(0, outline.geometry.attributes.position.count);
+    outline.material.opacity = 0.9;
+    phase = "settled";
+  }
+
+  function clearGroup() {
+    while (group.children.length) {
+      var c = group.children[0];
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) c.material.dispose();
+      group.remove(c);
+    }
+  }
+
+  function rebuildScene() {
+    var wasSettled = phase === "settled";
+    clearGroup();
+    buildScene();
+    startPos = null;
+    if (wasSettled) snapToTargets();
+    else phase = "drift";
+  }
+
+  function startConverge() {
+    if (reduceMotion || !points) return;
+    if (phase === "settled") return;
+    startPos = Float32Array.from(points.geometry.attributes.position.array);
+    phase = "converge";
+    convergeStartedAt = performance.now();
+  }
+
+  function scatter() {
+    if (reduceMotion || !points) return;
+    var arr = points.geometry.attributes.position.array;
+    for (var i = 0; i < N; i++) {
+      arr[i * 3] = home[i].x + (Math.random() - 0.5) * 1.6;
+      arr[i * 3 + 1] = home[i].y + (Math.random() - 0.5) * 1.1;
+      arr[i * 3 + 2] = home[i].z;
+    }
+    points.geometry.attributes.position.needsUpdate = true;
+    group.rotation.set(0, 0, 0);
+    outline.geometry.setDrawRange(0, 0);
+    outline.material.opacity = 0;
+    links.material.opacity = 0;
+    phase = "drift";
+    if (convergeTimer) clearTimeout(convergeTimer);
+    convergeTimer = setTimeout(startConverge, 900);
+  }
+
+  function updateSparks(t) {
+    if (!sparks) return;
+    var arr = sparks.geometry.attributes.position.array;
+    sparks.userData.forEach(function (d, i) {
+      var a = t * d.speed + d.ph;
+      arr[i * 3] = Math.cos(a) * d.rx;
+      arr[i * 3 + 1] = Math.sin(a) * d.ry * 0.6 + d.y0;
+      arr[i * 3 + 2] = Math.sin(a * 0.5) * 0.5;
+    });
+    sparks.geometry.attributes.position.needsUpdate = true;
+  }
+
+  function setLinks(now) {
+    var arr = points.geometry.attributes.position.array;
+    var step = Math.max(10, Math.floor(N / 90));
+    var anchors = [];
+    for (var i = 0; i < N; i += step) anchors.push(i);
+    var R = 1.55, MAXSEG = 220, best = [], an = anchors.length;
+    for (var a = 0; a < an; a++) {
+      var ai = anchors[a];
+      for (var b = a + 1; b < an; b++) {
+        var bi = anchors[b];
+        var dx = arr[ai * 3] - arr[bi * 3], dy = arr[ai * 3 + 1] - arr[bi * 3 + 1], dz = arr[ai * 3 + 2] - arr[bi * 3 + 2];
+        var d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 < R * R) best.push([d2, ai, bi]);
+      }
+    }
+    best.sort(function (x, y) { return x[0] - y[0]; });
+    var keep = best.slice(0, MAXSEG);
+    var posArr = new Float32Array(keep.length * 6);
+    keep.forEach(function (seg, idx) {
+      var a2 = seg[1], b2 = seg[2];
+      posArr[idx * 6] = arr[a2 * 3]; posArr[idx * 6 + 1] = arr[a2 * 3 + 1]; posArr[idx * 6 + 2] = arr[a2 * 3 + 2];
+      posArr[idx * 6 + 3] = arr[b2 * 3]; posArr[idx * 6 + 4] = arr[b2 * 3 + 1]; posArr[idx * 6 + 5] = arr[b2 * 3 + 2];
+    });
+    links.geometry.setAttribute("position", new THREE.BufferAttribute(posArr, 3));
+    links.geometry.setDrawRange(0, keep.length * 2);
+    links.material.opacity = clamp(0.14 + keep.length / MAXSEG * 0.2, 0, 0.36);
+  }
+
+  function tick(now) {
+    var t = now / 1000;
+    if (!points) { renderer.render(scene, camera); if (running) animId = requestAnimationFrame(tick); return; }
+    var arr = points.geometry.attributes.position.array;
+
+    if (phase === "drift") {
+      for (var i = 0; i < N; i++) {
+        var hp = home[i];
+        arr[i * 3] = hp.x + Math.sin(t * 0.18 + P[i].phase) * 0.35;
+        arr[i * 3 + 1] = hp.y + Math.cos(t * 0.14 + P[i].phase * 1.7) * 0.3;
+        arr[i * 3 + 2] = hp.z + Math.sin(t * 0.22 + P[i].phase * 2.1) * 0.2;
+      }
+      group.rotation.y = Math.sin(t * 0.05) * 0.1;
+      if (now - linkTimer > 260) { setLinks(now); linkTimer = now; }
+    } else if (phase === "converge") {
+      var p = Math.min(1, (now - convergeStartedAt) / 2600);
+      for (var c2 = 0; c2 < N; c2++) {
+        var st = P[c2];
+        var lp = clamp((now - convergeStartedAt - st.delay * 1000) / (st.dur * 1000), 0, 1);
+        var e = easeInOutCubic(lp);
+        arr[c2 * 3] = startPos[c2 * 3] + (targets[c2].x - startPos[c2 * 3]) * e;
+        arr[c2 * 3 + 1] = startPos[c2 * 3 + 1] + (targets[c2].y - startPos[c2 * 3 + 1]) * e;
+        arr[c2 * 3 + 2] = startPos[c2 * 3 + 2] + (targets[c2].z - startPos[c2 * 3 + 2]) * e;
+      }
+      group.rotation.y = (1 - p) * Math.sin(t * 0.05) * 0.1;
+      if (p >= 1) phase = "settled";
+    } else { // settled
+      for (var s3 = 0; s3 < N; s3++) {
+        var sp = P[s3];
+        arr[s3 * 3] = targets[s3].x + Math.sin(t * 0.8 + sp.phase) * 0.05;
+        arr[s3 * 3 + 1] = targets[s3].y + Math.cos(t * 0.7 + sp.phase * 1.3) * 0.045;
+        arr[s3 * 3 + 2] = targets[s3].z + Math.sin(t * 1.1 + sp.phase * 0.7) * 0.05;
+      }
+      group.rotation.y = Math.sin(t * 0.1) * 0.14;
+      group.rotation.x = Math.sin(t * 0.08 + 1) * 0.05;
+    }
+    points.geometry.attributes.position.needsUpdate = true;
+
+    updateSparks(t);
+
+    // outline draw-on after convergence
+    if (phase === "converge" || phase === "settled") {
+      var op = phase === "settled" ? 1 : clamp((now - convergeStartedAt - 600) / 1400, 0, 1);
+      var total = outline.geometry.attributes.position.count;
+      outline.geometry.setDrawRange(0, Math.round(total * op));
+      outline.material.opacity = op * 0.9;
+    }
+
+    // fade links out during convergence
+    if (phase !== "drift" && links.material.opacity > 0) {
+      links.material.opacity = Math.max(0, links.material.opacity - 0.02);
+      if (links.material.opacity <= 0) links.geometry.setDrawRange(0, 0);
+    }
+
+    // gentle camera parallax
+    camera.rotation.y += (camTarget.y - camera.rotation.y) * 0.05;
+    camera.rotation.x += (camTarget.x - camera.rotation.x) * 0.05;
+
+    renderer.render(scene, camera);
+    if (running) animId = requestAnimationFrame(tick);
+  }
+
+  var camTarget = { x: 0, y: 0 };
+  window.addEventListener("pointermove", function (e) {
+    if (reduceMotion) return;
+    var r = hero.getBoundingClientRect();
+    if (e.clientY < r.top || e.clientY > r.bottom) return;
+    camTarget.y = ((e.clientX / window.innerWidth) - 0.5) * 0.32;
+    camTarget.x = ((e.clientY / window.innerHeight) - 0.5) * 0.18;
+  }, { passive: true });
+
+  function startLoop() { running = true; animId = requestAnimationFrame(tick); }
+  function stopLoop() { running = false; if (animId) cancelAnimationFrame(animId); }
+
+  var heroVisible = new IntersectionObserver(function (entries) {
+    visible = entries[0].isIntersecting;
+    if (visible && !running && !reduceMotion) startLoop();
+    else if ((!visible || reduceMotion) && running) stopLoop();
+  }, { threshold: 0.02 });
+  heroVisible.observe(hero);
+
+  var resizeTimer = null;
+  function onResize() {
+    if (!renderer || !scene) return;
+    renderer.setSize(hero.clientWidth, hero.clientHeight, false);
+    camera.aspect = hero.clientWidth / Math.max(hero.clientHeight, 1);
+    camera.updateProjectionMatrix();
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      var w = hero.clientWidth;
+      layout();
+      var wideNow = w >= 900;
+      var bigChange = lastBuiltWidth === 0 || Math.abs(w - lastBuiltWidth) / Math.max(lastBuiltWidth, 1) > 0.12;
+      if (wideNow === lastWide && !bigChange) return; // nothing meaningful changed
+      var wasSettled = phase === "settled";
+      clearGroup();
+      buildScene();
+      startPos = null;
+      if (wasSettled) {
+        snapToTargets();
+      } else {
+        phase = "drift";
+        if (!reduceMotion) {
+          if (convergeTimer) clearTimeout(convergeTimer);
+          convergeTimer = setTimeout(startConverge, 700);
+        }
+      }
+      if (reduceMotion && !running) renderer.render(scene, camera);
+    }, 180);
+  }
+  window.addEventListener("resize", onResize);
+
+  var replayBtn = document.getElementById("sceneReplay");
+  replayBtn.addEventListener("click", scatter);
+
+  function init() {
+    if (!window.THREE) { hero.classList.add("no-webgl"); return; }
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+    } catch (e) { hero.classList.add("no-webgl"); return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 0);
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(55, 1, 0.1, 50);
+    camera.position.set(0, 0, 9);
+    group = new THREE.Group();
+    scene.add(group);
+    buildScene();
+    onResize();
+    if (reduceMotion) {
+      renderer.render(scene, camera);
+    } else {
+      startLoop();
+      convergeTimer = setTimeout(startConverge, 1600);
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>
