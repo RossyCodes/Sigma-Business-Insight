@@ -26,3 +26,7 @@ Thumbs.db
 
 # Runtime logs
 *.log
+
+# Internal working documents (not part of the public repo)
+BUG_REPORT_messy_data_handling.md
+INSTRUCTIONS_for_freebuff.md
