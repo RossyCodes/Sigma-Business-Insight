@@ -116,4 +116,4 @@ A sample dataset (`sample_sales_data.csv`) is included in the repo. Upload it fr
 
 ## 📄 License
 
-This project is provided for personal and educational use.
+See [license](license) file for details
