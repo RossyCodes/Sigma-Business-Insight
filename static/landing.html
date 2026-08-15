@@ -960,7 +960,7 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
   var hero = document.getElementById("hero");
   var canvas = document.getElementById("hero-scene");
   var scene = null, camera = null, renderer = null, group = null;
-  var points = null, links = null, outline = null, sparks = null;
+  var points = null, constellation = null, outline = null, sparks = null;
   var N = 0, targets = [], home = [], P = [], startPos = null;
   var phase = "drift";           // drift | converge | settled
   var convergeStartedAt = 0;
@@ -1130,12 +1130,12 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
     }
 
     // constellation links (drift phase only)
-    links = new THREE.LineSegments(
+    constellation = new THREE.LineSegments(
       new THREE.BufferGeometry(),
       new THREE.LineBasicMaterial({ color: COL_SIGNAL, transparent: true, opacity: 0,
         blending: THREE.AdditiveBlending, depthWrite: false })
     );
-    group.add(links);
+    group.add(constellation);
 
     // chart outline drawn after convergence
     outline = new THREE.Line(
@@ -1212,7 +1212,7 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
     group.rotation.set(0, 0, 0);
     outline.geometry.setDrawRange(0, 0);
     outline.material.opacity = 0;
-    links.material.opacity = 0;
+    constellation.material.opacity = 0;
     phase = "drift";
     if (convergeTimer) clearTimeout(convergeTimer);
     convergeTimer = setTimeout(startConverge, 900);
@@ -1253,9 +1253,9 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
       posArr[idx * 6] = arr[a2 * 3]; posArr[idx * 6 + 1] = arr[a2 * 3 + 1]; posArr[idx * 6 + 2] = arr[a2 * 3 + 2];
       posArr[idx * 6 + 3] = arr[b2 * 3]; posArr[idx * 6 + 4] = arr[b2 * 3 + 1]; posArr[idx * 6 + 5] = arr[b2 * 3 + 2];
     });
-    links.geometry.setAttribute("position", new THREE.BufferAttribute(posArr, 3));
-    links.geometry.setDrawRange(0, keep.length * 2);
-    links.material.opacity = clamp(0.14 + keep.length / MAXSEG * 0.2, 0, 0.36);
+    constellation.geometry.setAttribute("position", new THREE.BufferAttribute(posArr, 3));
+    constellation.geometry.setDrawRange(0, keep.length * 2);
+    constellation.material.opacity = clamp(0.14 + keep.length / MAXSEG * 0.2, 0, 0.36);
   }
 
   function tick(now) {
@@ -1307,9 +1307,9 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
     }
 
     // fade links out during convergence
-    if (phase !== "drift" && links.material.opacity > 0) {
-      links.material.opacity = Math.max(0, links.material.opacity - 0.02);
-      if (links.material.opacity <= 0) links.geometry.setDrawRange(0, 0);
+    if (phase !== "drift" && constellation.material.opacity > 0) {
+      constellation.material.opacity = Math.max(0, constellation.material.opacity - 0.02);
+      if (constellation.material.opacity <= 0) constellation.geometry.setDrawRange(0, 0);
     }
 
     // gentle camera parallax

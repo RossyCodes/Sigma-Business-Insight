@@ -162,7 +162,23 @@ def render_sales_trend(
         st.info(t("trend_no_parse", lang))
         return
 
-    trend = df.groupby(df[date_col].dt.date, as_index=False)[amount_col].sum()
+    # Aggregate by day/week/month based on the date range span so the trend
+    # line stays readable over long periods (weekly >60 days, monthly >365).
+    span_days = (df[date_col].max() - df[date_col].min()).days
+    if span_days > 365:
+        # pandas >= 2.2 renamed the monthly alias 'M' -> 'ME'
+        freq = "ME" if tuple(int(x) for x in pd.__version__.split(".")[:2]) >= (2, 2) else "M"
+    elif span_days > 60:
+        freq = "W"
+    else:
+        freq = "D"
+
+    trend = (
+        df.groupby(pd.Grouper(key=date_col, freq=freq))[amount_col]
+        .sum()
+        .dropna()
+        .reset_index()
+    )
     trend = trend.sort_values(date_col)
 
     fig = px.line(
@@ -184,7 +200,7 @@ def render_sales_trend(
         height=400,
     )
     _apply_sigma_theme(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # ---------------------------------------------------------------------------
@@ -235,7 +251,7 @@ def render_top_products(
         textfont=dict(family=_FONT_MONO, color="rgba(232,238,249,.8)", size=10),
     )
     _apply_sigma_theme(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # ---------------------------------------------------------------------------
@@ -297,4 +313,4 @@ def render_category_breakdown(
         ),
     )
     _apply_sigma_theme(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")

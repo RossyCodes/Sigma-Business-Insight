@@ -143,6 +143,7 @@ TRANSLATIONS = {
 
         # ---- Footer ----
         "footer": "Business Insight Agent &mdash; AI-Powered Sales Analytics for Malaysian Small Businesses",
+        "back_to_landing": "← Back to Sigma",
     },
 
     "bm": {
@@ -282,6 +283,7 @@ TRANSLATIONS = {
 
         # ---- Footer ----
         "footer": "Business Insight Agent &mdash; Analitis Jualan Dikuasakan AI untuk Perniagaan Kecil Malaysia",
+        "back_to_landing": "← Kembali ke Sigma",
     },
 }
 

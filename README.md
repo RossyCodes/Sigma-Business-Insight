@@ -108,7 +108,8 @@ Run `python test_data_cleaning.py` to automatically push every file through the 
 ├── dashboard_utils.py   # KPI cards, trend chart, top products, category breakdown
 ├── pdf_report.py        # PDF report generation (reportlab)
 ├── translations.py      # English / Bahasa Melayu translations
-├── landing.html         # Landing page markup
+├── static/             # Static files served by Streamlit (landing page)
+│   └── landing.html    # Landing page markup
 ├── requirements.txt     # Python dependencies
 ├── test_data/           # Sample + messy + industry test CSVs
 ├── test_data_cleaning.py  # Automated regression tests for the cleaning pipeline

@@ -186,15 +186,34 @@ def _md_to_plain(text: str) -> str:
 
 
 def _trend_chart(df: pd.DataFrame, date_col: str, amount_col: str) -> Optional[Drawing]:
-    """Daily sales line chart (vector). Returns a Drawing or None."""
+    """Sales line chart aggregated by day/week/month (vector). Returns a Drawing or None.
+
+    Aggregation granularity is picked from the date range span: daily (<=60 days),
+    weekly (>60 days), or monthly (>365 days).
+    """
     if not pd.api.types.is_datetime64_any_dtype(df[date_col]):
         return None
-    daily = df.groupby(df[date_col].dt.date)[amount_col].sum().sort_index()
-    if daily.empty:
+
+    span_days = (df[date_col].max() - df[date_col].min()).days
+    if span_days > 365:
+        # pandas >= 2.2 renamed the monthly alias 'M' -> 'ME'
+        freq = "ME" if tuple(int(x) for x in pd.__version__.split(".")[:2]) >= (2, 2) else "M"
+    elif span_days > 60:
+        freq = "W"
+    else:
+        freq = "D"
+
+    trend = (
+        df.groupby(pd.Grouper(key=date_col, freq=freq))[amount_col]
+        .sum()
+        .dropna()
+        .sort_index()
+    )
+    if trend.empty:
         return None
 
-    xs = list(range(len(daily)))
-    ys = [float(v) for v in daily.values]
+    xs = list(range(len(trend)))
+    ys = [float(v) for v in trend.values]
     max_y = max(ys) if ys else 0.0
 
     chart = LinePlot()
@@ -214,8 +233,8 @@ def _trend_chart(df: pd.DataFrame, date_col: str, amount_col: str) -> Optional[D
     chart.xValueAxis.labels.fontSize = 6.5
     chart.xValueAxis.labels.angle = 0
     chart.xValueAxis.labelTextFormat = (
-        lambda v: daily.index[int(v)].strftime("%d %b")
-        if 0 <= int(v) < len(daily.index)
+        lambda v: trend.index[int(v)].strftime("%b %Y" if freq in ("M", "ME") else "%d %b")
+        if 0 <= int(v) < len(trend.index)
         else ""
     )
 

@@ -42,9 +42,18 @@ from pdf_report import build_report_pdf
 # Page configuration
 # ---------------------------------------------------------------------------
 
+# Same Σ favicon as the landing page (landing.html) so both feel like one product.
+_FAVICON_SIGMA = (
+    "data:image/svg+xml,"
+    "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E"
+    "%3Crect width='32' height='32' rx='7' fill='%230B1830'/%3E"
+    "%3Cpath d='M9 9h14l-8 7 8 7H9z' fill='none' stroke='%238FD4FF' "
+    "stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"
+)
+
 st.set_page_config(
-    page_title="Business Insight Agent",
-    page_icon="📊",
+    page_title="Sigma — Business Insight Agent",
+    page_icon=_FAVICON_SIGMA,
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -469,7 +478,7 @@ with st.sidebar:
     with lang_col1:
         if st.button(
             "English",
-            use_container_width=True,
+            width="stretch",
             type="primary" if st.session_state.language == "en" else "secondary",
             key="btn_en",
         ):
@@ -478,7 +487,7 @@ with st.sidebar:
     with lang_col2:
         if st.button(
             "Melayu",
-            use_container_width=True,
+            width="stretch",
             type="primary" if st.session_state.language == "bm" else "secondary",
             key="btn_bm",
         ):
@@ -581,7 +590,7 @@ with st.sidebar:
                 help="Which column has the category or segment? (optional)",
             )
 
-            if st.button(t("generate_btn", _L), type="primary", use_container_width=True):
+            if st.button(t("generate_btn", _L), type="primary", width="stretch"):
                 with st.spinner(t("generating", _L)):
                     cleaned, clean_report = clean_data_with_report(
                         df,
@@ -616,6 +625,14 @@ with st.sidebar:
         "<p style='font-size:0.72rem;color:rgba(232,238,249,.38);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;'>"
         "Σ Business Insight Agent<br>"
         "Built with Streamlit • Gemini • Plotly"
+        "</p>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<p style='font-size:0.72rem;color:rgba(232,238,249,.38);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;margin:.5rem 0 0;'>"
+        f"<a href='app/static/landing.html' target='_blank' rel='noopener' "
+        f"style='color:rgba(232,238,249,.38);text-decoration:none;'>"
+        f"{t('back_to_landing', _L)}</a>"
         "</p>",
         unsafe_allow_html=True,
     )
@@ -929,7 +946,7 @@ with st.container():
     with st.expander(t("raw_data", _L)):
         st.dataframe(
             df_filtered.head(100),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -1010,7 +1027,7 @@ else:
             if st.button(
                 t("quick_insights_btn", _L),
                 type="primary",
-                use_container_width=True,
+                width="stretch",
                 help=t("quick_insights_btn_hint", _L),
             ):
                 with st.chat_message("assistant"):
