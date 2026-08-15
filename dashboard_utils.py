@@ -76,10 +76,12 @@ def render_kpi_cards(
     date_col: Optional[str] = None,
     lang: str = "en",
 ) -> None:
-    """Render 4 KPI metric cards in a row with bilingual labels.
+    """Render 4 KPI metric cards in a responsive grid with bilingual labels.
 
     Cards follow the landing page's ``clean-kpi`` tile look: mono uppercase
-    labels in faint, values in ice blue on a glassy ink panel.
+    labels in faint, values in ice blue on a glassy ink panel. The grid
+    layout (4-across desktop -> 2x2 -> single column on small screens) is
+    defined in app.py's theme CSS via ``.sigma-kpi-grid`` media queries.
     """
     total_sales = df[amount_col].sum() if amount_col and amount_col in df.columns else 0
     total_transactions = len(df)
@@ -101,43 +103,43 @@ def render_kpi_cards(
         (t("best_day", lang), best_day_str),
     ]
 
-    cols = st.columns(4, gap="medium")
-    for i, (label, value) in enumerate(kpis):
-        with cols[i]:
-            st.markdown(
-                f"""
-                <div class="sigma-kpi" style="
-                    background: rgba(11,24,48,.88);
-                    border-radius: 14px;
-                    padding: 20px 16px;
-                    box-shadow: 0 14px 34px -14px rgba(0,0,0,.7);
-                    border: 1px solid rgba(143,212,255,.14);
-                    text-align: center;
-                    height: 100%;
-                    transition: border-color .3s ease, background .3s ease, transform .2s ease;
-                ">
-                    <p style="
-                        font-family: {_FONT_MONO};
-                        font-size: 0.62rem;
-                        color: rgba(232,238,249,.38);
-                        margin: 0 0 10px 0;
-                        font-weight: 500;
-                        text-transform: uppercase;
-                        letter-spacing: 0.22em;
-                        white-space: nowrap;
-                    ">{label}</p>
-                    <p style="
-                        font-family: {_FONT_MONO};
-                        font-size: 1.4rem;
-                        font-weight: 600;
-                        color: {_COLOR_ICE};
-                        margin: 0;
-                        white-space: nowrap;
-                    ">{value}</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    # Font sizes live in the CSS (so media queries can scale them); inline
+    # styles keep the card chrome (colors, padding, shadow, border) intact.
+    cards_html = ""
+    for label, value in kpis:
+        cards_html += f"""
+            <div class="sigma-kpi" style="
+                background: rgba(11,24,48,.88);
+                border-radius: 14px;
+                padding: 20px 16px;
+                box-shadow: 0 14px 34px -14px rgba(0,0,0,.7);
+                border: 1px solid rgba(143,212,255,.14);
+                text-align: center;
+                height: 100%;
+                transition: border-color .3s ease, background .3s ease, transform .2s ease;
+            ">
+                <p class="sigma-kpi-label" style="
+                    font-family: {_FONT_MONO};
+                    color: rgba(232,238,249,.38);
+                    margin: 0 0 10px 0;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    letter-spacing: 0.22em;
+                    white-space: nowrap;
+                ">{label}</p>
+                <p class="sigma-kpi-value" style="
+                    font-family: {_FONT_MONO};
+                    font-weight: 600;
+                    color: {_COLOR_ICE};
+                    margin: 0;
+                    white-space: nowrap;
+                ">{value}</p>
+            </div>"""
+
+    st.markdown(
+        f'<div class="sigma-kpi-grid">{cards_html}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # ---------------------------------------------------------------------------

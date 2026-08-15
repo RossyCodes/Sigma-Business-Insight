@@ -280,6 +280,16 @@ _CSS = """
     /* ---- Plotly cards ---- */
     div[data-testid="stPlotlyChart"] { background: transparent !important; }
 
+    /* ---- KPI cards: responsive grid (4 -> 2 -> 1 columns) ---- */
+    .sigma-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+    .sigma-kpi-grid .sigma-kpi { height: 100%; }
+    .sigma-kpi-grid .sigma-kpi-label { font-size: 0.62rem; }
+    .sigma-kpi-grid .sigma-kpi-value { font-size: 1.4rem; }
+
     /* ---- KPI cards hover (matches landing tile) ---- */
     .sigma-kpi:hover {
         border-color: rgba(143,212,255,.42) !important;
@@ -287,11 +297,78 @@ _CSS = """
         transform: translateY(-2px);
     }
 
+    /* ============================================================
+       Mobile responsiveness (viewport < 768px and small phones)
+       Only affects small screens — desktop layout is untouched.
+       ============================================================ */
+    @media (max-width: 768px) {
+        /* Stack every Streamlit column block (filters, chart pairs,
+           quick-insights row) vertically so nothing gets cramped. */
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap;
+            gap: 0.6rem 0.75rem;
+        }
+        [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        /* KPI cards: 2x2 grid, slightly tighter padding so values fit */
+        .sigma-kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .sigma-kpi-grid .sigma-kpi { padding: 16px 12px; }
+        .sigma-kpi-grid .sigma-kpi-label { font-size: 0.56rem; }
+        .sigma-kpi-grid .sigma-kpi-value { font-size: clamp(1rem, 4.6vw, 1.25rem); }
+    }
+    @media (max-width: 480px) {
+        /* Very small phones: KPI cards stack to a single column */
+        .sigma-kpi-grid { grid-template-columns: 1fr; }
+    }
+
 </style>"""
 
 
 # Apply the dark theme CSS
 st.markdown(_CSS, unsafe_allow_html=True)
+
+# Mobile-only: auto-collapse the sidebar on first load so the dashboard
+# isn't hidden behind the upload panel on phones. Desktop (>=768px) is
+# untouched — the script only acts on narrow parent windows and only once
+# per tab. An iframe is used because Streamlit renders st.markdown
+# scripts inert (inserted via innerHTML), whereas st.iframe embeds a
+# real iframe whose script runs and can reach window.parent.
+st.iframe(
+    """
+<script>
+(function () {
+    var w = window.parent;
+    if (w.innerWidth >= 768) return;  // desktop — leave Streamlit alone
+    var done = false;
+    try { done = w.sessionStorage.getItem("sigma-sidebar-collapsed") === "1"; } catch (e) {}
+    if (done) return;
+    var tries = 0;
+    var timer = setInterval(function () {
+        tries += 1;
+        var doc = w.document;
+        var sb = doc.querySelector('section[data-testid="stSidebar"]');
+        var btn = doc.querySelector('button[data-testid="stBaseButton-headerNoPadding"]')
+               || doc.querySelector('button[data-testid="stSidebarCollapsedControl"]');
+        if (sb && sb.getAttribute("aria-expanded") === "true" && btn) {
+            btn.click();
+            try { w.sessionStorage.setItem("sigma-sidebar-collapsed", "1"); } catch (e) {}
+            clearInterval(timer);
+        } else if (tries > 40) {
+            clearInterval(timer);  // give up after ~12s if the toggle never appears
+        }
+    }, 300);
+})();
+</script>
+""",
+    height=1,  # 1px so the helper iframe is invisible
+)
 
 # ---------------------------------------------------------------------------
 # Helper: initialise / re-initialise the agent

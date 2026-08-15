@@ -365,7 +365,20 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
   .nav-links{display:none}
   .nav-cta .btn{display:none}
   .burger{display:flex}
-  .chip{display:none}
+  /* Floating stat callouts: drop out of absolute positioning and stack
+     cleanly under the hero copy instead of overlapping it on small screens.
+     The pulse animation on the dot is kept. */
+  .chip{
+    position:static;
+    align-self:flex-start;
+    margin:0 0 .55rem;
+    white-space:normal;
+    max-width:100%;
+  }
+  /* The no-WebGL bar-chart fallback would overlap the copy on narrow
+     screens, so hide it below this breakpoint (it is decorative only). */
+  .hero-fallback{display:none}
+  .no-webgl .hero-fallback{display:none}
   .scene-ui{display:none}
   .hero-scrollcue{display:none}
   .hero-grad{background:linear-gradient(180deg,rgba(5,11,24,.9) 0%,rgba(5,11,24,.55) 42%,rgba(5,11,24,.82) 100%)}
@@ -374,6 +387,23 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
   .clean-strip{flex-direction:column}
   .kpi-tiles{grid-template-columns:repeat(2,1fr)}
   .note-panel{padding:48px 26px}
+}
+@media (max-width:480px){
+  .wrap{padding:0 20px}
+  section{padding:72px 0}
+  h1{font-size:clamp(2rem,9vw,2.5rem)}
+  .hero-inner{padding:104px 20px 32px}
+  .hero-cta{flex-direction:column;gap:.7rem}
+  .hero-cta .btn{width:100%}
+  .note-panel{padding:40px 20px}
+  .cta-panel{padding:84px 20px}
+  .step-card{padding:24px 20px}
+  .f-card{padding:24px 20px}
+  .clean-kpi{padding:1rem 1.1rem}
+  .mock-table{font-size:.72rem}
+  .mock-table th{padding:.5rem .7rem;font-size:.56rem}
+  .mock-table td{padding:.5rem .7rem}
+  .foot-inner{padding:0 20px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;
@@ -919,7 +949,11 @@ footer{background:var(--void);border-top:1px solid var(--line-soft);padding:46px
     if (reduceMotion) return;
     var y = window.scrollY;
     document.querySelectorAll(".chip").forEach(function (c) {
-      c.style.transform = "translateY(" + (y * parseFloat(c.dataset.sp || "0")) + "px)";
+      // Below 860px the chips are static stacked content (not floating), so
+      // the parallax translate must not fight the CSS layout on mobile.
+      c.style.transform = window.innerWidth >= 861
+        ? "translateY(" + (y * parseFloat(c.dataset.sp || "0")) + "px)"
+        : "";
     });
   }
   window.addEventListener("scroll", onScroll, { passive: true });
