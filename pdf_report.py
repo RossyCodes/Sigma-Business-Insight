@@ -52,6 +52,8 @@ ICE = colors.HexColor("#8FD4FF")
 
 PAGE_W, PAGE_H = A4
 MARGIN = 16 * mm
+# Printable width (A4 minus left/right margins) — every Drawing must fit inside it
+PRINT_W = PAGE_W - 2 * MARGIN
 
 # ---------------------------------------------------------------------------
 # Styles
@@ -219,7 +221,9 @@ def _trend_chart(df: pd.DataFrame, date_col: str, amount_col: str) -> Optional[D
     chart = LinePlot()
     chart.x = 45
     chart.y = 40
-    chart.width = 500
+    # Keep the plot area inside the printable width, with room to the right so
+    # the last x-axis date label is not clipped at the page edge.
+    chart.width = PRINT_W - chart.x - 18
     chart.height = 150
     chart.data = [list(zip(xs, ys))]
     chart.lines[0].strokeColor = BLUE
@@ -245,7 +249,7 @@ def _trend_chart(df: pd.DataFrame, date_col: str, amount_col: str) -> Optional[D
     chart.yValueAxis.labels.fontSize = 6.5
     chart.yValueAxis.labelTextFormat = lambda v: f"RM {v:,.0f}"
 
-    d = Drawing(560, 200)
+    d = Drawing(PRINT_W, 200)
     d.add(chart)
     return d
 
