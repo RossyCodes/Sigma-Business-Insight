@@ -706,9 +706,13 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='font-size:0.72rem;color:rgba(232,238,249,.38);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;margin:.5rem 0 0;'>"
-        f"<a href='app/static/landing.html' target='_blank' rel='noopener' "
-        f"style='color:rgba(232,238,249,.38);text-decoration:none;'>"
+        "<p style='margin:.7rem 0 0;'>"
+        f"<a href='app/static/landing.html' target='_self' "
+        f"style='display:block;text-align:center;padding:.62rem 1rem;border-radius:12px;"
+        f"text-decoration:none;font-family:\"Space Grotesk\",system-ui,sans-serif;font-weight:600;"
+        f"font-size:.85rem;letter-spacing:.02em;color:#FFFFFF;"
+        f"background:linear-gradient(135deg,#2F6FED 0%,#2457c4 55%,#2F6FED 120%);"
+        f"box-shadow:0 0 0 1px rgba(143,212,255,.22) inset,0 10px 34px -10px rgba(47,111,237,.55);'>"
         f"{t('back_to_landing', _L)}</a>"
         "</p>",
         unsafe_allow_html=True,
